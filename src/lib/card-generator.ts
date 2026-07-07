@@ -117,3 +117,8 @@ export function getRarityEmoji(rarity: 1 | 2 | 3 | 4 | 5): string {
   const emojis = ['☆', '⭐', '⭐⭐', '⭐⭐⭐', '⭐⭐⭐⭐'];
   return emojis[rarity - 1];
 }
+
+export function getRarityName(rarity: 1 | 2 | 3 | 4 | 5): string {
+  const names = ['common', 'rare', 'epic', 'legendary', 'legendary'];
+  return names[rarity - 1];
+}
