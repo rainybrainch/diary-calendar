@@ -133,9 +133,9 @@ function PasteContent() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           {/* Input Area */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
             <label className="block text-sm font-bold mb-2">テキストを貼り付け</label>
 
             <textarea
@@ -242,16 +242,16 @@ DREAM: 将来への思い...
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2 justify-end mt-6">
+        <div className="flex gap-2 justify-end mt-6 pb-8 sm:pb-0">
           <Link href="/">
-            <button className="px-4 sm:px-6 py-2 sm:py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-bold transition text-sm sm:text-base">
+            <button className="px-4 sm:px-6 py-3 sm:py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-bold transition text-sm sm:text-base min-h-12 sm:min-h-auto">
               キャンセル
             </button>
           </Link>
           <button
             onClick={handleSave}
             disabled={loading || !preview}
-            className={`px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-bold transition flex items-center gap-2 text-sm sm:text-base ${
+            className={`px-6 sm:px-8 py-3 sm:py-3 rounded-lg font-bold transition flex items-center gap-2 text-sm sm:text-base min-h-12 sm:min-h-auto ${
               loading || !preview
                 ? 'bg-gray-400 text-gray-700 cursor-not-allowed'
                 : 'bg-blue-500 text-white hover:bg-blue-600'

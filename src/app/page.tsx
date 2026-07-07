@@ -152,7 +152,7 @@ function DashboardContent() {
 
                   {/* 本日のタスク表示セクション */}
                   <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-                    <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">✅ 本日のタスク</h2>
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">🎯 今日の習慣</h2>
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                       {HABITS.map((habit) => {
                         const isCompleted = todayEntry?.tasks[habit.id as keyof typeof todayEntry.tasks] || false;
@@ -242,12 +242,12 @@ function DashboardContent() {
               </div>
 
               <div className="bg-blue-50 rounded-lg border-l-4 border-blue-500 p-6">
-                <h3 className="text-lg font-bold mb-2 text-blue-800">💡 使い方</h3>
+                <h3 className="text-lg font-bold mb-2 text-blue-800">🎯 今日始める</h3>
                 <ul className="text-sm space-y-2 text-blue-700">
-                  <li>• カレンダーの日付をクリックして追加</li>
-                  <li>• ホーム下の「記録する」で入力</li>
-                  <li>• グラフで推移を確認</li>
-                  <li>• カードをコレクション</li>
+                  <li>✍️ <strong>記録する</strong> → ボトムナビから入力</li>
+                  <li>📋 <strong>カレンダー確認</strong> → 習慣達成度をヒートマップで見る</li>
+                  <li>🎴 <strong>カード集める</strong> → レアリティを目指す</li>
+                  <li>🏆 <strong>ランキング参加</strong> → 毎日の習慣を競う</li>
                 </ul>
               </div>
             </div>

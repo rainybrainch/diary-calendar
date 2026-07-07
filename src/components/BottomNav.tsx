@@ -29,14 +29,14 @@ export function BottomNav() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex-1 flex flex-col items-center justify-center py-3 sm:py-4 transition border-t-4 ${
+                className={`flex-1 flex flex-col items-center justify-center py-3 sm:py-4 transition border-t-4 min-h-[64px] ${
                   isActive
                     ? 'border-blue-500 text-blue-600 bg-blue-50'
                     : 'border-transparent text-gray-600 hover:text-blue-500 hover:bg-gray-50'
                 }`}
               >
                 <div className="text-xl sm:text-2xl mb-1">{item.icon}</div>
-                <div className="text-xs sm:text-sm font-semibold">{item.label}</div>
+                <div className="text-xs sm:text-sm font-semibold truncate">{item.label}</div>
               </Link>
             );
           })}
