@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSupabaseDiaryEntries } from '@/hooks/useSupabaseData';
 import { storage } from '@/lib/storage';
 import { DiaryEntry } from '@/lib/types';
+import { initializeDemoData } from '@/lib/demo-data';
 import Link from 'next/link';
 
 const HABITS = [
@@ -26,6 +27,11 @@ function DashboardContent() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [entries, setEntries] = useState<DiaryEntry[]>([]);
   const [showGraph, setShowGraph] = useState(false);
+
+  // デモモード初期化（初回アクセス時にサンプルデータを生成）
+  useEffect(() => {
+    initializeDemoData();
+  }, []);
 
   // Supabase データ取得
   const now = new Date();
