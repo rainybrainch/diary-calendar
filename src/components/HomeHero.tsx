@@ -16,15 +16,15 @@ export function HomeHero({
   todayMood,
 }: HomeHeroProps) {
   return (
-    <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl shadow-lg p-8 mb-8 text-white">
+    <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl shadow-lg p-6 sm:p-8 mb-8 text-white">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">🌅 おはようございます</h1>
-        <p className="opacity-90">今日の記録を始めましょう</p>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2">🌅 おはようございます</h1>
+        <p className="text-sm sm:text-base opacity-90">今日の記録を始めましょう</p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      {/* Stats Grid - Responsive */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
         {/* Streak */}
         <div className="bg-white bg-opacity-20 rounded-lg p-4 text-center">
           <div className="text-3xl mb-1">🔥</div>

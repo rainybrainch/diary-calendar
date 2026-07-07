@@ -12,6 +12,15 @@ import { storage } from '@/lib/storage';
 import { DiaryEntry } from '@/lib/types';
 import Link from 'next/link';
 
+const HABITS = [
+  { id: 'pushups', label: 'プッシュアップ', emoji: '💪' },
+  { id: 'squats', label: 'スクワット', emoji: '🦵' },
+  { id: 'plank', label: 'プランク', emoji: '🏋️' },
+  { id: 'run', label: 'ラン', emoji: '🏃' },
+  { id: 'reading', label: '読書', emoji: '📚' },
+  { id: 'ai_learning', label: 'AI学習', emoji: '🤖' },
+] as const;
+
 function DashboardContent() {
   const { user, signOut } = useAuth();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -67,25 +76,25 @@ function DashboardContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="max-w-6xl mx-auto">
-        <header className="mb-8 flex justify-between items-start">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 pb-28">
+      <div className="max-w-6xl mx-auto p-4">
+        <header className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
           <div>
-            <h1 className="text-4xl font-bold text-gray-800 mb-2">📔 日記カレンダー</h1>
-            <p className="text-gray-600">毎日の日記を写真とテキストで記録。気分、体力、作業時間を可視化します。</p>
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-2">📔 日記カレンダー</h1>
+            <p className="text-sm sm:text-base text-gray-600">毎日の日記を写真とテキストで記録。気分、体力、作業時間を可視化します。</p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-gray-600 mb-2">{user?.email}</p>
+            <p className="text-xs sm:text-sm text-gray-600 mb-2">{user?.email}</p>
             <button
               onClick={handleLogout}
-              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+              className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-red-500 text-white rounded hover:bg-red-600 transition"
             >
               ログアウト
             </button>
           </div>
         </header>
 
-        {/* Home Stats */}
+        {/* Home Hero */}
         {!showGraph && (
           <>
             {useMemo(() => {
@@ -101,7 +110,6 @@ function DashboardContent() {
                   (todayEntry.tasks.ai_learning ? 1 : 0)
                 : 0;
 
-              // 連続達成日数計算
               let continuousDays = 0;
               for (let i = 0; i < entries.length; i++) {
                 const checkDate = new Date();
@@ -128,55 +136,84 @@ function DashboardContent() {
               }
 
               return (
-                <HomeHero
-                  continuousDays={continuousDays}
-                  todayTaskCount={taskCount}
-                  totalTasks={6}
-                  todayMood={todayEntry?.mood || 0}
-                />
+                <>
+                  <HomeHero
+                    continuousDays={continuousDays}
+                    todayTaskCount={taskCount}
+                    totalTasks={6}
+                    todayMood={todayEntry?.mood || 0}
+                  />
+
+                  {/* 本日のタスク表示セクション */}
+                  <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">✅ 本日のタスク</h2>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                      {HABITS.map((habit) => {
+                        const isCompleted = todayEntry?.tasks[habit.id as keyof typeof todayEntry.tasks] || false;
+                        return (
+                          <div
+                            key={habit.id}
+                            className={`flex flex-col items-center justify-center p-4 rounded-lg transition ${
+                              isCompleted
+                                ? 'bg-gradient-to-br from-green-400 to-green-500 text-white shadow-md'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            }`}
+                          >
+                            <div className="text-2xl sm:text-3xl mb-2">{habit.emoji}</div>
+                            <div className="text-xs sm:text-sm font-bold text-center">{habit.label}</div>
+                            <div className="text-xs mt-1">
+                              {isCompleted ? '✓' : '○'}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </>
               );
             }, [entries])}
           </>
         )}
 
+        {/* Navigation Buttons */}
         <div className="flex gap-2 mb-6 flex-wrap">
           <button
             onClick={() => setShowGraph(!showGraph)}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-blue-500 text-white rounded hover:bg-blue-600 transition"
           >
-            {showGraph ? 'ホームを表示' : 'グラフを表示'}
+            {showGraph ? 'ホーム' : 'グラフ'}
           </button>
           <Link
             href="/cards"
-            className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 inline-block"
+            className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-purple-500 text-white rounded hover:bg-purple-600 inline-block transition"
           >
-            🎴 カードを見る
+            🎴 カード
           </Link>
           <Link
             href="/ranking"
-            className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 inline-block"
+            className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-orange-500 text-white rounded hover:bg-orange-600 inline-block transition"
           >
             🏆 ランキング
           </Link>
           <button
             onClick={handleExport}
-            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+            className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-green-500 text-white rounded hover:bg-green-600 transition"
           >
-            データをエクスポート
+            📥 データ
           </button>
         </div>
 
         {showGraph ? (
           <DiaryGraph entries={entries} />
         ) : (
-          <div className="grid lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
               <Calendar onSelectDate={setSelectedDate} selectedDate={selectedDate} />
             </div>
 
-            <div className="lg:col-span-1 space-y-6">
+            <div className="space-y-6">
               <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-bold mb-4">最近の記録</h3>
+                <h3 className="text-lg font-bold mb-4">📋 最近の記録</h3>
                 <div className="space-y-3 max-h-96 overflow-y-auto">
                   {entries
                     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
@@ -185,7 +222,7 @@ function DashboardContent() {
                       <button
                         key={entry.date}
                         onClick={() => setSelectedDate(entry.date)}
-                        className="w-full text-left p-3 bg-gray-50 rounded hover:bg-gray-100 transition"
+                        className="w-full text-left p-3 bg-gray-50 rounded hover:bg-blue-50 transition border-l-4 border-transparent hover:border-blue-500"
                       >
                         <div className="font-bold text-sm">{entry.date}</div>
                         <div className="text-xs text-gray-600 truncate">{entry.text || '（本文なし）'}</div>
@@ -198,13 +235,13 @@ function DashboardContent() {
                 </div>
               </div>
 
-              <div className="bg-blue-50 rounded-lg shadow p-6">
-                <h3 className="text-lg font-bold mb-2">💡 ヒント</h3>
-                <ul className="text-sm space-y-2 text-gray-700">
-                  <li>• カレンダーの日付をクリックして日記を追加</li>
-                  <li>• 画像をアップロードしてA4日記を保存</li>
-                  <li>• 気分と体力を数値で記録</li>
+              <div className="bg-blue-50 rounded-lg border-l-4 border-blue-500 p-6">
+                <h3 className="text-lg font-bold mb-2 text-blue-800">💡 使い方</h3>
+                <ul className="text-sm space-y-2 text-blue-700">
+                  <li>• カレンダーの日付をクリックして追加</li>
+                  <li>• ホーム下の「記録する」で入力</li>
                   <li>• グラフで推移を確認</li>
+                  <li>• カードをコレクション</li>
                 </ul>
               </div>
             </div>
