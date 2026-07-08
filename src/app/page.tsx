@@ -5,12 +5,14 @@ import { Calendar } from '@/components/Calendar';
 import { DetailModal } from '@/components/DetailModal';
 import { DiaryGraph } from '@/components/DiaryGraph';
 import { HomeHero } from '@/components/HomeHero';
+import { ForestDisplay } from '@/components/ForestDisplay';
 import { AuthGuard } from '@/components/AuthGuard';
 import { useAuth } from '@/hooks/useAuth';
 import { useSupabaseDiaryEntries } from '@/hooks/useSupabaseData';
 import { storage } from '@/lib/storage';
 import { DiaryEntry } from '@/lib/types';
 import { initializeDemoData } from '@/lib/demo-data';
+import { calculateForestState } from '@/lib/forest-calculator';
 import Link from 'next/link';
 
 const HABITS = [
@@ -141,6 +143,10 @@ function DashboardContent() {
                 }
               }
 
+              // 森の成長スコア計算
+              const totalCards = entries.length;
+              const forestState = calculateForestState(taskCount, continuousDays, totalCards);
+
               return (
                 <>
                   <HomeHero
@@ -149,6 +155,9 @@ function DashboardContent() {
                     totalTasks={6}
                     todayMood={todayEntry?.mood || 0}
                   />
+
+                  {/* 森の成長表示 - 最重要エリア */}
+                  <ForestDisplay forestState={forestState} />
 
                   {/* 本日のタスク表示セクション */}
                   <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
