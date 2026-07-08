@@ -1,8 +1,12 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { AIQuestion, AIAnswerContext } from '@/lib/ai/types';
 import { createAIProvider, getDefaultAIConfig } from '@/lib/ai';
+import { analyzePastData } from '@/lib/past-data-analyzer';
+import { storage } from '@/lib/storage';
+import { useAuth } from './useAuth';
+import { useSupabaseDiaryEntries } from './useSupabaseData';
 
 interface UseAIQuestionsState {
   questions: AIQuestion[];
@@ -13,6 +17,7 @@ interface UseAIQuestionsState {
 }
 
 export function useAIQuestions() {
+  const { user } = useAuth();
   const [state, setState] = useState<UseAIQuestionsState>({
     questions: [],
     currentQuestionIndex: 0,
@@ -21,7 +26,30 @@ export function useAIQuestions() {
     error: null,
   });
 
-  const aiProvider = createAIProvider(getDefaultAIConfig());
+  const [aiProvider, setAiProvider] = useState(createAIProvider(getDefaultAIConfig()));
+
+  // Supabase データ取得（本番モード用）
+  const now = new Date();
+  const { entries: supabaseEntries } = useSupabaseDiaryEntries(
+    now.getFullYear(),
+    now.getMonth()
+  );
+
+  // 初期化時に過去データを分析して AI プロバイダーを再作成
+  useEffect(() => {
+    const collectEntries = () => {
+      if (user && supabaseEntries.length > 0) {
+        return supabaseEntries;
+      }
+      const data = storage.getData();
+      return data.entries;
+    };
+
+    const entries = collectEntries();
+    const pastContext = analyzePastData(entries);
+    const newProvider = createAIProvider(getDefaultAIConfig(), pastContext);
+    setAiProvider(newProvider);
+  }, [user, supabaseEntries]);
 
   // 初期質問セットを生成
   const initializeQuestions = useCallback(async (initialContext?: Partial<AIAnswerContext>) => {
@@ -49,7 +77,7 @@ export function useAIQuestions() {
         error: errorMsg,
       }));
     }
-  }, []);
+  }, [aiProvider]);
 
   // 質問に答える
   const answerQuestion = useCallback(
@@ -113,7 +141,7 @@ export function useAIQuestions() {
         }
       }
     },
-    [state]
+    [state, aiProvider]
   );
 
   // 前の質問に戻る
