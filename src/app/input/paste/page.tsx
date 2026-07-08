@@ -242,12 +242,19 @@ DREAM: 将来への思い...
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2 justify-end mt-6 pb-8 sm:pb-0">
+        <div className="flex gap-2 flex-wrap justify-end mt-6 pb-8 sm:pb-0">
           <Link href="/">
             <button className="px-4 sm:px-6 py-3 sm:py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-bold transition text-sm sm:text-base min-h-12 sm:min-h-auto">
               キャンセル
             </button>
           </Link>
+          {preview && (
+            <Link href="/input/ai-questions">
+              <button className="px-4 sm:px-6 py-3 sm:py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 font-bold transition text-sm sm:text-base min-h-12 sm:min-h-auto">
+                💭 AI 質問チャット
+              </button>
+            </Link>
+          )}
           <button
             onClick={handleSave}
             disabled={loading || !preview}
