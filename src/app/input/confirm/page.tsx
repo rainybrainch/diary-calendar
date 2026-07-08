@@ -7,15 +7,17 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { AuthGuard } from '@/components/AuthGuard';
 import { useAuth } from '@/hooks/useAuth';
 import { GrowthReportModal } from '@/components/GrowthReportModal';
+import { AIAdviceDisplay } from '@/components/AIAdviceDisplay';
 import { generateCard } from '@/lib/card-generator';
 import { DiaryCardComponent } from '@/components/DiaryCard';
 import { analyzePastData } from '@/lib/past-data-analyzer';
+import { calculateForestState } from '@/lib/forest-calculator';
 import { createAIProvider, getDefaultAIConfig } from '@/lib/ai';
 import { storage } from '@/lib/storage';
 import { useSupabaseDiaryEntries } from '@/hooks/useSupabaseData';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
-import { GrowthReport } from '@/lib/ai/types';
+import { GrowthReport, AIAdvice } from '@/lib/ai/types';
 
 function ConfirmContent() {
   const searchParams = useSearchParams();
@@ -27,6 +29,8 @@ function ConfirmContent() {
   const [aiContent, setAIContent] = useState<any>(null);
   const [growthReport, setGrowthReport] = useState<GrowthReport | null>(null);
   const [showGrowthReport, setShowGrowthReport] = useState(false);
+  const [aiAdvice, setAIAdvice] = useState<AIAdvice | null>(null);
+  const [showAdvice, setShowAdvice] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [rank, setRank] = useState<number | null>(null);
@@ -147,7 +151,7 @@ function ConfirmContent() {
           setPreviousRank(previousRankValue);
         }
 
-        // 成長レポートを生成
+        // 成長レポート＆AIアドバイスを生成
         try {
           const collectEntries = () => {
             if (user && supabaseEntries.length > 0) {
@@ -161,13 +165,21 @@ function ConfirmContent() {
           const pastContext = analyzePastData(allData);
           const aiProvider = createAIProvider(getDefaultAIConfig(), pastContext);
 
+          // 成長レポート
           if (aiProvider.generateGrowthReport) {
             const report = await aiProvider.generateGrowthReport();
             setGrowthReport(report);
             setShowGrowthReport(true);
           }
+
+          // AI アドバイス
+          if (aiProvider.generateAdvice) {
+            const advice = await aiProvider.generateAdvice();
+            setAIAdvice(advice);
+            // 成長レポート後に自動で表示するため、ここでは表示しない
+          }
         } catch (reportErr) {
-          console.warn('Failed to generate growth report:', reportErr);
+          console.warn('Failed to generate growth report/advice:', reportErr);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : '読み込みエラー');
@@ -316,8 +328,23 @@ function ConfirmContent() {
         <GrowthReportModal
           report={growthReport}
           isOpen={showGrowthReport}
-          onClose={() => setShowGrowthReport(false)}
+          onClose={() => {
+            setShowGrowthReport(false);
+            // 成長レポートが閉じられたら自動で AI アドバイスを表示
+            if (aiAdvice) {
+              setTimeout(() => setShowAdvice(true), 300);
+            }
+          }}
         />
+
+        {/* AI アドバイスモーダル */}
+        {aiAdvice && (
+          <AIAdviceDisplay
+            advice={aiAdvice}
+            isOpen={showAdvice}
+            onClose={() => setShowAdvice(false)}
+          />
+        )}
 
         {/* Action Buttons */}
         <div className="flex flex-col gap-3">

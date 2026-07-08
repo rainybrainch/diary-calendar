@@ -1,5 +1,6 @@
-import { AIProvider, AIQuestion, AIAnswerContext, AIGeneratedContent, GrowthReport } from './types';
+import { AIProvider, AIQuestion, AIAnswerContext, AIGeneratedContent, GrowthReport, AIAdvice } from './types';
 import { generateGrowthReport } from '../growth-report-generator';
+import { generateAIAdvice } from '../ai-advice-generator';
 
 /**
  * Demo AI Provider - API無しで固定ロジックで動作
@@ -184,6 +185,33 @@ export class DemoAIProvider implements AIProvider {
     };
 
     return generateGrowthReport(defaultContext);
+  }
+
+  async generateAdvice(): Promise<AIAdvice> {
+    // Demo モードは過去データなしで一般的なアドバイスを返す
+    const defaultContext = {
+      yesterdayHabits: 0,
+      weekAverageHabits: 0,
+      habitTrend: 'stable' as const,
+      completedHabits: [],
+      missingHabits: [],
+      yesterdayMood: 0,
+      moodTrend: 'stable' as const,
+      moodAverage: 3,
+      yesterdayEnergy: 0,
+      energyTrend: 'stable' as const,
+      energyAverage: 3,
+      consecutiveDays: 0,
+      isOnStreak: false,
+      longestStreak: 0,
+      cardsThisWeek: 0,
+      cardTrend: 'low' as const,
+      recordedDays: 1,
+      consistencyScore: 10,
+      sleepPattern: 'irregular' as const,
+    };
+
+    return generateAIAdvice(defaultContext);
   }
 
   reset(): void {

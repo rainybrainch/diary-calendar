@@ -44,6 +44,15 @@ export interface GrowthReport {
 }
 
 /**
+ * AI アドバイス（今日・明日・今週）
+ */
+export interface AIAdvice {
+  today: string; // 今日へのアドバイス（2-3行）
+  tomorrow: string; // 明日へのアドバイス（2-3行）
+  thisWeek: string; // 今週へのアドバイス（2-3行）
+}
+
+/**
  * AI プロバイダー抽象インターフェース
  */
 export interface AIProvider {
@@ -82,6 +91,12 @@ export interface AIProvider {
    * 過去データに基づいた励ましのコメント
    */
   generateGrowthReport?(context?: AIAnswerContext): Promise<GrowthReport>;
+
+  /**
+   * AI アドバイスを生成（保存後）
+   * 過去データをもとに「今日・明日・今週」の3軸アドバイスを返す
+   */
+  generateAdvice?(context?: AIAnswerContext): Promise<AIAdvice>;
 
   /**
    * プロバイダーの健全性確認

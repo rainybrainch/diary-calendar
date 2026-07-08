@@ -3,9 +3,10 @@
  * 過去14日間のデータを参照して質問を生成
  */
 
-import { AIProvider, AIQuestion, AIAnswerContext, AIGeneratedContent, GrowthReport } from './types';
+import { AIProvider, AIQuestion, AIAnswerContext, AIGeneratedContent, GrowthReport, AIAdvice } from './types';
 import { PastDataContext } from '../past-data-analyzer';
 import { generateGrowthReport as generateGrowthReportCore } from '../growth-report-generator';
+import { generateAIAdvice } from '../ai-advice-generator';
 
 export class ContextAwareDemoAIProvider implements AIProvider {
   private questionCount = 0;
@@ -291,6 +292,10 @@ export class ContextAwareDemoAIProvider implements AIProvider {
 
   async generateGrowthReport(): Promise<GrowthReport> {
     return generateGrowthReportCore(this.pastContext);
+  }
+
+  async generateAdvice(): Promise<AIAdvice> {
+    return generateAIAdvice(this.pastContext);
   }
 
   reset(): void {
