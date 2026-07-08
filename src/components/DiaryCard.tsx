@@ -58,12 +58,27 @@ export function DiaryCardComponent({ card, onClick }: DiaryCardProps) {
           </div>
         </div>
 
-        {/* スキル */}
+        {/* スキル / タグ */}
         <div className="flex-1 bg-black bg-opacity-20 rounded p-2 mb-2">
-          <div className="text-xs font-bold">スキル</div>
-          <div className="text-sm line-clamp-3">
-            {card.habitCount > 0 ? `習慣達成 × ${card.habitCount}` : 'スキルなし'}
-          </div>
+          {card.tags && card.tags.length > 0 ? (
+            <>
+              <div className="text-xs font-bold mb-1">#タグ</div>
+              <div className="flex flex-wrap gap-1">
+                {card.tags.slice(0, 3).map((tag, i) => (
+                  <span key={i} className="bg-black bg-opacity-30 rounded px-1 text-xs">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="text-xs font-bold">スキル</div>
+              <div className="text-sm line-clamp-3">
+                {card.habitCount > 0 ? `習慣達成 × ${card.habitCount}` : 'スキルなし'}
+              </div>
+            </>
+          )}
         </div>
 
         {/* フッター */}

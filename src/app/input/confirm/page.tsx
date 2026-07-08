@@ -18,10 +18,24 @@ function ConfirmContent() {
   const date = searchParams.get('date');
 
   const [entry, setEntry] = useState<any>(null);
+  const [aiContent, setAIContent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [rank, setRank] = useState<number | null>(null);
   const [previousRank, setPreviousRank] = useState<number | null>(null);
+
+  // AI生成コンテンツを読み込む
+  useEffect(() => {
+    const savedContent = sessionStorage.getItem('aiGeneratedContent');
+    if (savedContent) {
+      try {
+        setAIContent(JSON.parse(savedContent));
+        sessionStorage.removeItem('aiGeneratedContent');
+      } catch (err) {
+        console.warn('Failed to parse AI content:', err);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -165,7 +179,17 @@ function ConfirmContent() {
     );
   }
 
-  const card = generateCard(entry, true);
+  // AI content を反映させてカードを生成
+  const cardEntry = {
+    ...entry,
+    title: aiContent?.title,
+    tags: aiContent?.tags,
+    attribute: aiContent?.attribute,
+    aiMood: aiContent?.mood,
+    aiEnergy: aiContent?.energy,
+  };
+
+  const card = generateCard(cardEntry, true);
   const taskCount =
     (entry.tasks.pushups ? 1 : 0) +
     (entry.tasks.squats ? 1 : 0) +
