@@ -12,8 +12,11 @@ interface AuthContextType {
   session: Session | null;
   username: string | null;
   loading: boolean;
-  signUp: (email: string, password: string, username: string) => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
+  error: string | null;
+  signUpWithEmail: (email: string, password: string, username: string) => Promise<void>;
+  signInWithEmail: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
+  signInWithGitHub: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -42,6 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [username, setUsername] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (DEMO_MODE) {
@@ -92,51 +96,106 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signUp = async (email: string, password: string, username: string) => {
+  const signUpWithEmail = async (email: string, password: string, username: string) => {
     if (DEMO_MODE) {
       setUsername(username);
+      setError(null);
       return;
     }
 
     try {
+      setError(null);
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            username,
+            display_name: username,
+          },
+        },
       });
 
       if (error) throw error;
 
       if (data.user) {
-        const { error: insertError } = await supabase.from('users').insert({
-          id: data.user.id,
-          username,
-          display_name: username,
-        });
-
-        if (insertError) throw insertError;
         setUsername(username);
       }
-    } catch (error) {
-      console.error('Sign up error:', error);
-      throw error;
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : '登録に失敗しました';
+      setError(errorMsg);
+      console.error('Sign up error:', err);
+      throw err;
     }
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signInWithEmail = async (email: string, password: string) => {
     if (DEMO_MODE) {
+      setError(null);
       return;
     }
 
     try {
+      setError(null);
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) throw error;
-    } catch (error) {
-      console.error('Sign in error:', error);
-      throw error;
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'ログインに失敗しました';
+      setError(errorMsg);
+      console.error('Sign in error:', err);
+      throw err;
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    if (DEMO_MODE) {
+      setError(null);
+      return;
+    }
+
+    try {
+      setError(null);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback`,
+        },
+      });
+
+      if (error) throw error;
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Google ログインに失敗しました';
+      setError(errorMsg);
+      console.error('Google sign in error:', err);
+      throw err;
+    }
+  };
+
+  const signInWithGitHub = async () => {
+    if (DEMO_MODE) {
+      setError(null);
+      return;
+    }
+
+    try {
+      setError(null);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback`,
+        },
+      });
+
+      if (error) throw error;
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'GitHub ログインに失敗しました';
+      setError(errorMsg);
+      console.error('GitHub sign in error:', err);
+      throw err;
     }
   };
 
@@ -145,23 +204,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
       setSession(null);
       setUsername(null);
+      setError(null);
       return;
     }
 
     try {
+      setError(null);
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       setUser(null);
       setSession(null);
       setUsername(null);
-    } catch (error) {
-      console.error('Sign out error:', error);
-      throw error;
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'ログアウトに失敗しました';
+      setError(errorMsg);
+      console.error('Sign out error:', err);
+      throw err;
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, username, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, username, loading, error, signUpWithEmail, signInWithEmail, signInWithGoogle, signInWithGitHub, signOut }}>
       {children}
     </AuthContext.Provider>
   );

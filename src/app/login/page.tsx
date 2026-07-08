@@ -10,7 +10,7 @@ import Link from 'next/link';
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
 
 export default function LoginPage() {
-  const { signIn, signUp, user } = useAuth();
+  const { signInWithEmail, signInWithGoogle, signUpWithEmail, user, error: authError } = useAuth();
   const router = useRouter();
   const [isSignUp, setIsSignUp] = useState(false);
   const [showLoginForm, setShowLoginForm] = useState(!DEMO_MODE);
@@ -18,7 +18,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [localError, setLocalError] = useState('');
 
   // デモモード時：ユーザーがログイン状態なら自動でホームへ
   if (DEMO_MODE && user) {
@@ -28,7 +28,7 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setLocalError('');
     setLoading(true);
 
     try {
@@ -36,14 +36,25 @@ export default function LoginPage() {
         if (!username.trim()) {
           throw new Error('ユーザー名を入力してください');
         }
-        await signUp(email, password, username);
+        await signUpWithEmail(email, password, username);
       } else {
-        await signIn(email, password);
+        await signInWithEmail(email, password);
       }
       router.push('/');
     } catch (err) {
-      setError(err instanceof Error ? err.message : '認証エラーが発生しました');
+      setLocalError(err instanceof Error ? err.message : '認証エラーが発生しました');
     } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setLocalError('');
+      setLoading(true);
+      await signInWithGoogle();
+    } catch (err) {
+      setLocalError(err instanceof Error ? err.message : 'Google ログインに失敗しました');
       setLoading(false);
     }
   };
@@ -126,10 +137,33 @@ export default function LoginPage() {
               )}
             </div>
 
+            {/* Google ログインボタン */}
+            {!DEMO_MODE && !isSignUp && (
+              <div className="mb-6">
+                <button
+                  type="button"
+                  onClick={handleGoogleSignIn}
+                  disabled={loading}
+                  className="w-full py-2 px-4 border-2 border-gray-300 text-gray-700 rounded font-bold hover:bg-gray-50 disabled:bg-gray-100 transition text-sm flex items-center justify-center gap-2"
+                >
+                  <span>🔐</span>
+                  <span>Google でログイン</span>
+                </button>
+                <div className="relative my-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-300"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-white text-gray-500">または</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-4">
-              {error && (
+              {(localError || authError) && (
                 <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
-                  {error}
+                  {localError || authError}
                 </div>
               )}
 
@@ -185,7 +219,7 @@ export default function LoginPage() {
                 type="button"
                 onClick={() => {
                   setIsSignUp(!isSignUp);
-                  setError('');
+                  setLocalError('');
                 }}
                 className="text-sm text-blue-600 hover:text-blue-800 font-semibold"
               >
