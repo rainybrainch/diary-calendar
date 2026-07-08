@@ -1,4 +1,5 @@
 import { DiaryEntry } from './types';
+import { CardEvolutionState, createCardEvolutionState, addExpToCard, calculateEXPGain } from './card-evolution';
 
 export interface DiaryCard {
   date: string;
@@ -18,6 +19,7 @@ export interface DiaryCard {
   habitCount: number;
   isOwner: boolean; // 本人か（裏面を見せるかの判定）
   diary?: string; // 本人だけ見える
+  evolution?: CardEvolutionState; // Lv・EXP・進化状態
 }
 
 const ATTRIBUTES = ['mind', 'body', 'work', 'relation', 'money', 'habit', 'dream'] as const;
@@ -57,6 +59,24 @@ export function generateCard(entry: any, isOwner: boolean = true): DiaryCard {
     ? entry.title
     : defaultTitle;
 
+  // 進化状態を計算
+  let evolution = entry.evolution;
+  if (!evolution) {
+    // 既存のカードレアリティから初期化
+    evolution = createCardEvolutionState(1, 0);
+
+    // EXP を付与（連続記録データがあれば）
+    if (entry.consecutiveDays !== undefined) {
+      const gainExp = calculateEXPGain(
+        habitCount,
+        entry.consecutiveDays || 0,
+        entry.aiMood || entry.mood || 0,
+        entry.aiEnergy || entry.energy || 0
+      );
+      evolution = addExpToCard(evolution, gainExp);
+    }
+  }
+
   return {
     date: entry.date,
     title,
@@ -67,6 +87,7 @@ export function generateCard(entry: any, isOwner: boolean = true): DiaryCard {
     habitCount,
     isOwner,
     diary: isOwner ? entry.text : undefined,
+    evolution,
   };
 }
 

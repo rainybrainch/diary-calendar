@@ -1,6 +1,7 @@
 'use client';
 
 import { DiaryCard, getAttributeColor, getAttributeEmoji, getRarityEmoji } from '@/lib/card-generator';
+import { getRarityInfo } from '@/lib/card-evolution';
 import { CardFlip } from './CardFlip';
 
 interface DiaryCardProps {
@@ -29,6 +30,12 @@ export function DiaryCardComponent({ card, onClick }: DiaryCardProps) {
           <div>
             <div className="text-xs font-bold opacity-80">DIARY CARD</div>
             <div className="text-lg font-bold">{card.title}</div>
+            {/* Lv 表示 */}
+            {card.evolution && (
+              <div className="text-xs font-bold mt-1">
+                Lv {card.evolution.level}
+              </div>
+            )}
           </div>
           <div className="text-lg">{rarityEmoji}</div>
         </div>
@@ -37,6 +44,24 @@ export function DiaryCardComponent({ card, onClick }: DiaryCardProps) {
         <div className="text-sm font-bold mb-2">
           {attributeEmoji} {card.attribute.toUpperCase()}
         </div>
+
+        {/* EXP バー */}
+        {card.evolution && (
+          <div className="mb-2 text-xs">
+            <div className="flex justify-between mb-1">
+              <span>EXP</span>
+              <span>{card.evolution.exp} / {card.evolution.nextLevelExp}</span>
+            </div>
+            <div className="bg-black bg-opacity-30 rounded-full h-2 overflow-hidden">
+              <div
+                className="h-full bg-yellow-300 transition-all"
+                style={{
+                  width: `${(card.evolution.exp / card.evolution.nextLevelExp) * 100}%`,
+                }}
+              />
+            </div>
+          </div>
+        )}
 
         {/* ステータス */}
         <div className="grid grid-cols-2 gap-2 mb-3 text-xs">
