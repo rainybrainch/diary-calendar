@@ -6,10 +6,16 @@ import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { AuthGuard } from '@/components/AuthGuard';
 import { useAuth } from '@/hooks/useAuth';
+import { GrowthReportModal } from '@/components/GrowthReportModal';
 import { generateCard } from '@/lib/card-generator';
 import { DiaryCardComponent } from '@/components/DiaryCard';
+import { analyzePastData } from '@/lib/past-data-analyzer';
+import { createAIProvider, getDefaultAIConfig } from '@/lib/ai';
+import { storage } from '@/lib/storage';
+import { useSupabaseDiaryEntries } from '@/hooks/useSupabaseData';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
+import { GrowthReport } from '@/lib/ai/types';
 
 function ConfirmContent() {
   const searchParams = useSearchParams();
@@ -19,10 +25,19 @@ function ConfirmContent() {
 
   const [entry, setEntry] = useState<any>(null);
   const [aiContent, setAIContent] = useState<any>(null);
+  const [growthReport, setGrowthReport] = useState<GrowthReport | null>(null);
+  const [showGrowthReport, setShowGrowthReport] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [rank, setRank] = useState<number | null>(null);
   const [previousRank, setPreviousRank] = useState<number | null>(null);
+
+  // Supabase データ取得（成長レポート用）
+  const now = new Date();
+  const { entries: supabaseEntries } = useSupabaseDiaryEntries(
+    now.getFullYear(),
+    now.getMonth()
+  );
 
   // AI生成コンテンツを読み込む
   useEffect(() => {
@@ -131,6 +146,29 @@ function ConfirmContent() {
           setRank(currentRank);
           setPreviousRank(previousRankValue);
         }
+
+        // 成長レポートを生成
+        try {
+          const collectEntries = () => {
+            if (user && supabaseEntries.length > 0) {
+              return supabaseEntries;
+            }
+            const data = storage.getData();
+            return data.entries;
+          };
+
+          const allData = collectEntries();
+          const pastContext = analyzePastData(allData);
+          const aiProvider = createAIProvider(getDefaultAIConfig(), pastContext);
+
+          if (aiProvider.generateGrowthReport) {
+            const report = await aiProvider.generateGrowthReport();
+            setGrowthReport(report);
+            setShowGrowthReport(true);
+          }
+        } catch (reportErr) {
+          console.warn('Failed to generate growth report:', reportErr);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : '読み込みエラー');
       } finally {
@@ -139,7 +177,7 @@ function ConfirmContent() {
     };
 
     fetchData();
-  }, [date, user]);
+  }, [date, user, supabaseEntries]);
 
   if (loading) {
     return (
@@ -273,6 +311,13 @@ function ConfirmContent() {
             </div>
           </div>
         )}
+
+        {/* 成長レポートモーダル */}
+        <GrowthReportModal
+          report={growthReport}
+          isOpen={showGrowthReport}
+          onClose={() => setShowGrowthReport(false)}
+        />
 
         {/* Action Buttons */}
         <div className="flex flex-col gap-3">

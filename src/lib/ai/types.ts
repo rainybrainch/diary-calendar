@@ -34,6 +34,16 @@ export interface AIGeneratedContent {
 }
 
 /**
+ * 成長レポート（保存後の励まし）
+ */
+export interface GrowthReport {
+  title: string;
+  messages: string[];
+  emoji: string;
+  tone: 'encouraging' | 'celebrating' | 'supportive' | 'motivating';
+}
+
+/**
  * AI プロバイダー抽象インターフェース
  */
 export interface AIProvider {
@@ -66,6 +76,12 @@ export interface AIProvider {
    * 全コンテンツを生成
    */
   generateAll(context: AIAnswerContext): Promise<AIGeneratedContent>;
+
+  /**
+   * 成長レポートを生成（保存後）
+   * 過去データに基づいた励ましのコメント
+   */
+  generateGrowthReport?(context?: AIAnswerContext): Promise<GrowthReport>;
 
   /**
    * プロバイダーの健全性確認
