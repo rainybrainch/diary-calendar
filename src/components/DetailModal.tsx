@@ -28,6 +28,7 @@ export function DetailModal({ date, onClose, onSave }: DetailModalProps) {
 
   useEffect(() => {
     if (!date) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setError(null);
 
     const existingEntry = storage.getEntry(date);
@@ -40,7 +41,7 @@ export function DetailModal({ date, onClose, onSave }: DetailModalProps) {
       setWorkTime(existingEntry.workTime);
       setImagePreview(null);
       setTasks(existingEntry.tasks);
-      setImageGenerated(existingEntry.imageGenerated);
+      setImageGenerated(existingEntry.imageGenerated ?? false);
     } else {
       setEntry(null);
       setText('');

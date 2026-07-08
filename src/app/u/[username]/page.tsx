@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { PublicCardGrid } from '@/components/PublicCardGrid';
-import { getPublicUserProfile, getPublicUserEntries, getPublicUserStats } from '@/lib/public-profile-utils';
+import { getPublicUserProfile, getPublicUserEntries, getPublicUserStats, PublicUser, UserStats } from '@/lib/public-profile-utils';
 import { DiaryEntry } from '@/lib/types';
 
 interface ProfilePageProps {
@@ -12,9 +12,9 @@ interface ProfilePageProps {
 }
 
 export default function ProfilePage({ params }: ProfilePageProps) {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<PublicUser | null>(null);
   const [entries, setEntries] = useState<Record<string, DiaryEntry[]>>({});
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedMonth, setSelectedMonth] = useState(() => {

@@ -30,13 +30,14 @@ export default function AISummaryPage() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [newTag, setNewTag] = useState('');
-  const [answers, setAnswers] = useState<Record<string, any>>({});
+  const [answers, setAnswers] = useState<Record<string, string>>({});
 
   // 初期化：sessionStorage から answers を取得
   useEffect(() => {
     const savedAnswers = sessionStorage.getItem('aiAnswers');
     if (savedAnswers) {
       const parsed = JSON.parse(savedAnswers);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setAnswers(parsed);
 
       // 自動でコンテンツを生成
@@ -169,10 +170,10 @@ export default function AISummaryPage() {
           <div className="bg-white rounded-lg shadow-lg p-4">
             <div className="text-xs text-purple-600 font-semibold mb-2">🎨 属性</div>
             <div className="space-y-1">
-              {['mind', 'body', 'work', 'relation', 'money', 'habit', 'dream'].map((attr) => (
+              {(['mind', 'body', 'work', 'relation', 'money', 'habit', 'dream'] as const).map((attr) => (
                 <button
                   key={attr}
-                  onClick={() => setAttribute(attr as any)}
+                  onClick={() => setAttribute(attr)}
                   className={`block w-full text-left px-2 py-1 rounded text-xs font-semibold transition ${
                     attribute === attr
                       ? 'bg-purple-200 text-purple-800'

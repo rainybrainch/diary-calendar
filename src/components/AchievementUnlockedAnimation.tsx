@@ -14,6 +14,12 @@ export function AchievementUnlockedAnimation({
 }: AchievementUnlockedAnimationProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
+  const [particlePositions] = useState(() =>
+    [...Array(8)].map(() => ({
+      left: 50 + Math.random() * 30 - 15,
+      top: 50 + Math.random() * 30 - 15,
+    }))
+  );
 
   useEffect(() => {
     if (achievements.length === 0) {
@@ -81,13 +87,13 @@ export function AchievementUnlockedAnimation({
 
         {/* パーティクル効果 */}
         <div className="absolute inset-0 pointer-events-none">
-          {[...Array(8)].map((_, i) => (
+          {particlePositions.map((pos, i) => (
             <div
               key={i}
               className="absolute animate-ping"
               style={{
-                left: `${50 + Math.random() * 30 - 15}%`,
-                top: `${50 + Math.random() * 30 - 15}%`,
+                left: `${pos.left}%`,
+                top: `${pos.top}%`,
                 animation: `ping 1.5s cubic-bezier(0, 0, 0.2, 1) ${i * 0.1}s infinite`,
               }}
             >

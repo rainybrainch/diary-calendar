@@ -11,13 +11,13 @@ export interface DiaryEntry {
   id?: string; // Supabase ID
   date: string; // YYYY-MM-DD
   text: string;
-  imagePath?: string; // user_id/YYYY-MM-DD.png
+  imagePath?: string | null; // user_id/YYYY-MM-DD.png
   mood: number; // 0-10
   energy: number; // 0-10
   activity: string;
   workTime: number; // minutes
   tasks: Tasks;
-  imageGenerated: boolean;
+  imageGenerated?: boolean;
   createdAt?: string;
   updatedAt?: string;
   // 7項目ライフログ（将来用）

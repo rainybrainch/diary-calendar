@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { AuthGuard } from '@/components/AuthGuard';
 import { useAuth } from '@/hooks/useAuth';
 import { RankingTabs } from '@/components/RankingTabs';
@@ -14,18 +14,33 @@ import {
   calculateContinuousDays,
 } from '@/lib/ranking-utils';
 import { supabase } from '@/lib/supabase';
+import { DiaryEntry } from '@/lib/types';
+
+interface RankingUser {
+  userId: string;
+  username: string;
+  displayName: string;
+  entries: DiaryEntry[];
+  score?: number;
+  continuousDays?: number;
+}
+
+interface SupabaseUser {
+  id: string;
+  username: string;
+  display_name: string | null;
+}
 
 function RankingContent() {
   const { user } = useAuth();
   const [selectedPeriod, setSelectedPeriod] = useState<'today' | 'week' | 'month' | 'continuous'>(
     'month'
   );
-  const [users, setUsers] = useState<any[]>([]);
-  const [entries, setEntries] = useState<Record<string, any[]>>({});
+  const [users, setUsers] = useState<RankingUser[]>([]);
   const [loading, setLoading] = useState(true);
 
   // ユーザーと日記データを取得
-  useMemo(() => {
+  useEffect(() => {
     const fetchRankingData = async () => {
       try {
         setLoading(true);
@@ -38,10 +53,9 @@ function RankingContent() {
         if (usersError) throw usersError;
 
         // 各ユーザーの日記データ取得
-        const entriesMap: Record<string, any[]> = {};
-        const rankingData = [];
+        const rankingData: RankingUser[] = [];
 
-        for (const u of usersData || []) {
+        for (const u of (usersData as SupabaseUser[]) || []) {
           const { data: diaryData, error: diaryError } = await supabase
             .from('diary_entries')
             .select('*, habit_checks(*)')
@@ -50,17 +64,14 @@ function RankingContent() {
 
           if (diaryError) throw diaryError;
 
-          entriesMap[u.id] = diaryData || [];
-
           rankingData.push({
             userId: u.id,
             username: u.username,
             displayName: u.display_name || u.username,
-            entries: diaryData || [],
+            entries: (diaryData as DiaryEntry[]) || [],
           });
         }
 
-        setEntries(entriesMap);
         setUsers(rankingData);
       } catch (error) {
         console.error('Failed to fetch ranking data:', error);

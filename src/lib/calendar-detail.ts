@@ -44,6 +44,7 @@ export interface DayStats {
  */
 export function getDayDetailData(
   date: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   allEntries: any[],
   allCards?: DiaryCard[]
 ): DayDetailData {

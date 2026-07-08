@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthGuard } from '@/components/AuthGuard';
 import { useAuth } from '@/hooks/useAuth';
-import { parseForestNoteText } from '@/lib/forest-note-parser';
+import { parseForestNoteText, ParsedForestNote } from '@/lib/forest-note-parser';
 import { saveDiaryEntry } from '@/lib/supabase-api';
 import { storage } from '@/lib/storage';
 import Link from 'next/link';
@@ -17,7 +17,7 @@ function PasteContent() {
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [preview, setPreview] = useState<any | null>(null);
+  const [preview, setPreview] = useState<ParsedForestNote | null>(null);
 
   const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
     const pasted = e.clipboardData.getData('text/plain');
@@ -207,7 +207,7 @@ DREAM: 将来への思い...
                   <div className="pb-3 border-b">
                     <div className="text-gray-600 mb-2">習慣</div>
                     <div className="flex flex-wrap gap-2">
-                      {Object.entries(preview.tasks).map(([key, value]: [string, any]) => (
+                      {Object.entries(preview.tasks).map(([key, value]: [string, boolean]) => (
                         value ? (
                           <span key={key} className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-semibold">
                             {key === 'pushups' ? '💪' : key === 'squats' ? '🦵' : key === 'plank' ? '🏋️' : key === 'run' ? '🏃' : key === 'reading' ? '📚' : '🤖'}

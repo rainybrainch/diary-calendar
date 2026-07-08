@@ -4,8 +4,19 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+interface QuickInputData {
+  text: string;
+  mood: number;
+  energy: number;
+  answers: {
+    today: string;
+    tomorrow: string;
+  };
+  date: string;
+}
+
 interface QuickInputFlowProps {
-  onSubmit: (data: any) => void;
+  onSubmit: (data: QuickInputData) => void;
   loading?: boolean;
 }
 
@@ -62,18 +73,31 @@ export function QuickInputFlow({ onSubmit, loading = false }: QuickInputFlowProp
       <div className="flex-shrink-0 bg-white shadow-sm border-b px-4 py-4 flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-800">✏️ 今日の記録</h2>
         <Link href="/">
-          <button className="text-gray-600 hover:text-gray-800 font-bold">✕</button>
+          <button
+            aria-label="今日の記録を閉じる"
+            className="text-gray-600 hover:text-gray-800 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 rounded p-1"
+          >
+            ✕
+          </button>
         </Link>
       </div>
 
       {/* ステップバー */}
-      <div className="flex-shrink-0 bg-white px-4 py-3 flex gap-1">
+      <div
+        className="flex-shrink-0 bg-white px-4 py-3 flex gap-1"
+        role="progressbar"
+        aria-valuenow={['paste', 'questions', 'confirm'].indexOf(step) + 1}
+        aria-valuemin={1}
+        aria-valuemax={3}
+        aria-label={`ステップ ${['paste', 'questions', 'confirm'].indexOf(step) + 1} / 3`}
+      >
         {['paste', 'questions', 'confirm'].map((s, i) => (
           <div
             key={s}
             className={`flex-1 h-1 rounded-full transition ${
               step === s ? 'bg-green-500' : ['paste', 'questions'].includes(step) && (step !== s || i > ['paste', 'questions'].indexOf(step)) ? 'bg-green-200' : 'bg-gray-200'
             }`}
+            aria-hidden="true"
           />
         ))}
       </div>
@@ -93,12 +117,14 @@ export function QuickInputFlow({ onSubmit, loading = false }: QuickInputFlowProp
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder="今日の出来事を入力..."
-              className="w-full h-32 p-3 border-2 border-green-300 rounded-lg focus:outline-none focus:border-green-500 resize-none"
+              aria-label="今日の出来事を入力"
+              className="w-full h-32 p-3 border-2 border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
             />
 
             <button
               onClick={handlePaste}
-              className="w-full py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 font-bold text-sm transition"
+              aria-label="クリップボードから貼り付け"
+              className="w-full py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 font-bold text-sm transition focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               📋 クリップボードから貼り付け
             </button>
@@ -144,15 +170,17 @@ export function QuickInputFlow({ onSubmit, loading = false }: QuickInputFlowProp
             {/* 気分・エネルギー */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block font-bold text-gray-800 text-sm mb-2">
+                <label htmlFor="mood-group" className="block font-bold text-gray-800 text-sm mb-2">
                   😊 気分
                 </label>
-                <div className="flex gap-1">
+                <div className="flex gap-1" id="mood-group" role="group">
                   {[1, 2, 3, 4, 5].map((n) => (
                     <button
                       key={n}
                       onClick={() => setMood(n)}
-                      className={`flex-1 py-2 rounded font-bold text-sm transition ${
+                      aria-pressed={mood === n}
+                      aria-label={`気分レベル ${n}`}
+                      className={`flex-1 py-2 rounded font-bold text-sm transition focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                         mood === n
                           ? 'bg-yellow-400 text-white'
                           : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -165,15 +193,17 @@ export function QuickInputFlow({ onSubmit, loading = false }: QuickInputFlowProp
               </div>
 
               <div>
-                <label className="block font-bold text-gray-800 text-sm mb-2">
+                <label htmlFor="energy-group" className="block font-bold text-gray-800 text-sm mb-2">
                   ⚡ エネルギー
                 </label>
-                <div className="flex gap-1">
+                <div className="flex gap-1" id="energy-group" role="group">
                   {[1, 2, 3, 4, 5].map((n) => (
                     <button
                       key={n}
                       onClick={() => setEnergy(n)}
-                      className={`flex-1 py-2 rounded font-bold text-sm transition ${
+                      aria-pressed={energy === n}
+                      aria-label={`エネルギーレベル ${n}`}
+                      className={`flex-1 py-2 rounded font-bold text-sm transition focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                         energy === n
                           ? 'bg-red-400 text-white'
                           : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -238,7 +268,8 @@ export function QuickInputFlow({ onSubmit, loading = false }: QuickInputFlowProp
               if (step === 'confirm') setStep('questions');
               else setStep('paste');
             }}
-            className="flex-1 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-bold transition"
+            aria-label={step === 'confirm' ? '質問ステップに戻る' : '入力ステップに戻る'}
+            className="flex-1 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-bold transition focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             戻る
           </button>
@@ -247,7 +278,8 @@ export function QuickInputFlow({ onSubmit, loading = false }: QuickInputFlowProp
         {step === 'questions' && (
           <button
             onClick={handleSkip}
-            className="flex-1 py-3 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 font-bold transition text-sm"
+            aria-label="質問をスキップして確認ステップに進む"
+            className="flex-1 py-3 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 font-bold transition text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             スキップ
           </button>
@@ -262,9 +294,10 @@ export function QuickInputFlow({ onSubmit, loading = false }: QuickInputFlowProp
           disabled={
             (step === 'paste' && !text.trim()) || loading
           }
-          className={`flex-1 py-3 rounded-lg font-bold text-white transition ${
+          aria-label={step === 'confirm' ? (loading ? '記録を保存中' : '記録を保存する') : '次のステップに進む'}
+          className={`flex-1 py-3 rounded-lg font-bold text-white transition focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 ${
             step === 'confirm'
-              ? 'bg-green-500 hover:bg-green-600'
+              ? 'bg-green-500 hover:bg-green-600 disabled:bg-gray-300'
               : 'bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300'
           }`}
         >

@@ -77,7 +77,7 @@ export function calculateContinuousDays(entries: DiaryEntry[]): number {
   const sorted = entries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   let continuous = 0;
-  let currentDate = new Date();
+  const currentDate = new Date();
   currentDate.setHours(0, 0, 0, 0);
 
   for (const entry of sorted) {

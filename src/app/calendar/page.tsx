@@ -3,6 +3,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useEffect, useState, Suspense } from 'react';
+import Link from 'next/link';
 import { AuthGuard } from '@/components/AuthGuard';
 import { useAuth } from '@/hooks/useAuth';
 import { useSupabaseDiaryEntries } from '@/hooks/useSupabaseData';
@@ -10,15 +11,16 @@ import { CalendarDayDetailModal } from '@/components/CalendarDayDetailModal';
 import { generateCard } from '@/lib/card-generator';
 import { getDayDetailData, DayDetailData } from '@/lib/calendar-detail';
 import { storage } from '@/lib/storage';
-import Link from 'next/link';
+import { DiaryEntry } from '@/lib/types';
+import { DiaryCard, GenerateCardInput } from '@/lib/card-generator';
 
 function CalendarContent() {
   const { user } = useAuth();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<DayDetailData | null>(null);
   const [showDetail, setShowDetail] = useState(false);
-  const [entries, setEntries] = useState<any[]>([]);
-  const [cards, setCards] = useState<any[]>([]);
+  const [entries, setEntries] = useState<DiaryEntry[]>([]);
+  const [cards, setCards] = useState<DiaryCard[]>([]);
 
   // Supabase からデータ取得
   const { entries: supabaseEntries } = useSupabaseDiaryEntries(
@@ -30,10 +32,12 @@ function CalendarContent() {
     // localStorage からデータ取得
     if (!user) {
       const data = storage.getData();
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setEntries(data.entries);
 
       // カードを生成
-      const generatedCards = data.entries.map((entry: any) => generateCard(entry, true));
+      const generatedCards = data.entries.map((entry: DiaryEntry) => generateCard(entry, true));
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCards(generatedCards);
     }
   }, [user]);
@@ -41,10 +45,12 @@ function CalendarContent() {
   useEffect(() => {
     // Supabase のデータがある場合は使用
     if (supabaseEntries.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setEntries(supabaseEntries);
 
       // カードを生成
-      const generatedCards = supabaseEntries.map((entry: any) => generateCard(entry, true));
+      const generatedCards = supabaseEntries.map((entry: DiaryEntry) => generateCard(entry, true));
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCards(generatedCards);
     }
   }, [supabaseEntries]);
@@ -85,10 +91,10 @@ function CalendarContent() {
   }
 
   // その月のエントリをマップ化
-  const entriesMap = new Map(entries.map((e: any) => [e.date, e]));
+  const entriesMap = new Map(entries.map((e: DiaryEntry) => [e.date, e]));
 
   // その月のカードをマップ化
-  const cardsMap = new Map(cards.map((c: any) => [c.date, c]));
+  const cardsMap = new Map(cards.map((c: DiaryCard) => [c.date, c]));
 
   const getDayIndicator = (day: number) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;

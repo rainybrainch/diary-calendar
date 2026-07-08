@@ -1,6 +1,32 @@
 import { supabase } from './supabase';
 
-export async function getPublicUserProfile(username: string) {
+export interface PublicUser {
+  id: string;
+  username: string;
+  display_name: string | null;
+  created_at: string;
+}
+
+interface PublicEntry {
+  id: string;
+  date: string;
+  text?: string;
+  activity?: string;
+  mood: number;
+  energy: number;
+  work_time: number;
+  image_generated: boolean;
+  habit_checks?: Array<{ [key: string]: boolean }>;
+}
+
+interface StatsEntry {
+  mood: number;
+  energy: number;
+  work_time: number;
+  habit_checks?: Array<{ [key: string]: boolean }>;
+}
+
+export async function getPublicUserProfile(username: string): Promise<PublicUser | null> {
   // profiles_public view から取得（RLS で安全）
   const { data: user, error: userError } = await supabase
     .from('profiles_public')
@@ -33,7 +59,7 @@ export async function getPublicUserEntries(userId: string, year: number, month: 
     throw new Error(`Failed to fetch public entries: ${error.message}`);
   }
 
-  return (entries || []).map((entry: any) => ({
+  return (entries || []).map((entry: PublicEntry) => ({
     id: entry.id,
     date: entry.date,
     text: entry.text || '',
@@ -78,9 +104,10 @@ export async function getPublicUserStats(userId: string) {
     throw new Error(`Failed to fetch user stats: ${error.message}`);
   }
 
-  const totalDays = entries?.length || 0;
+  const typedEntries = (entries as StatsEntry[]) || [];
+  const totalDays = typedEntries.length || 0;
   const completedDays =
-    entries?.filter((e: any) => {
+    typedEntries.filter((e: StatsEntry) => {
       const habitCount =
         (e.habit_checks?.[0]?.pushups ? 1 : 0) +
         (e.habit_checks?.[0]?.squats ? 1 : 0) +
@@ -93,8 +120,8 @@ export async function getPublicUserStats(userId: string) {
 
   const completionRate = totalDays > 0 ? Math.round((completedDays / totalDays) * 100) : 0;
 
-  const avgMood = entries?.length
-    ? Math.round(entries.reduce((sum: number, e: any) => sum + (e.mood || 0), 0) / entries.length)
+  const avgMood = typedEntries.length
+    ? Math.round(typedEntries.reduce((sum: number, e: StatsEntry) => sum + (e.mood || 0), 0) / typedEntries.length)
     : 0;
 
   return {
@@ -103,4 +130,11 @@ export async function getPublicUserStats(userId: string) {
     completionRate,
     averageMood: avgMood,
   };
+}
+
+export interface UserStats {
+  totalDays: number;
+  completedDays: number;
+  completionRate: number;
+  averageMood: number;
 }

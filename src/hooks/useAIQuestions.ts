@@ -11,6 +11,7 @@ import { useSupabaseDiaryEntries } from './useSupabaseData';
 interface UseAIQuestionsState {
   questions: AIQuestion[];
   currentQuestionIndex: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   answers: Record<string, any>;
   loading: boolean;
   error: string | null;
@@ -48,6 +49,7 @@ export function useAIQuestions() {
     const entries = collectEntries();
     const pastContext = analyzePastData(entries);
     const newProvider = createAIProvider(getDefaultAIConfig(), pastContext);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setAiProvider(newProvider);
   }, [user, supabaseEntries]);
 
@@ -81,6 +83,7 @@ export function useAIQuestions() {
 
   // 質問に答える
   const answerQuestion = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async (answer: any) => {
       const { currentQuestionIndex, questions, answers } = state;
       const currentQuestion = questions[currentQuestionIndex];

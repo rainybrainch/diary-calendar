@@ -18,6 +18,18 @@ import { useSupabaseDiaryEntries } from '@/hooks/useSupabaseData';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import { GrowthReport, AIAdvice } from '@/lib/ai/types';
+import { DiaryEntry } from '@/lib/types';
+import { DiaryCard } from '@/lib/card-generator';
+
+interface AIGeneratedContent {
+  title: string;
+  summary: string;
+  tags: string[];
+  attribute: 'mind' | 'body' | 'work' | 'relation' | 'money' | 'habit' | 'dream';
+  mood: number;
+  energy: number;
+  createdAt: string;
+}
 
 function ConfirmContent() {
   const searchParams = useSearchParams();
@@ -25,8 +37,8 @@ function ConfirmContent() {
   const { user } = useAuth();
   const date = searchParams.get('date');
 
-  const [entry, setEntry] = useState<any>(null);
-  const [aiContent, setAIContent] = useState<any>(null);
+  const [entry, setEntry] = useState<DiaryEntry | null>(null);
+  const [aiContent, setAIContent] = useState<AIGeneratedContent | null>(null);
   const [growthReport, setGrowthReport] = useState<GrowthReport | null>(null);
   const [showGrowthReport, setShowGrowthReport] = useState(false);
   const [aiAdvice, setAIAdvice] = useState<AIAdvice | null>(null);
@@ -48,6 +60,7 @@ function ConfirmContent() {
     const savedContent = sessionStorage.getItem('aiGeneratedContent');
     if (savedContent) {
       try {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setAIContent(JSON.parse(savedContent));
         sessionStorage.removeItem('aiGeneratedContent');
       } catch (err) {
@@ -124,6 +137,7 @@ function ConfirmContent() {
 
         if (!rankError && allEntries) {
           // 習慣達成数でランク計算（簡易）
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const scores = allEntries.map((e: any) => {
             const hc = e.habit_checks?.[0];
             return (hc?.pushups ? 1 : 0) +

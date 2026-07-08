@@ -14,6 +14,7 @@ export function GrowthReportModal({ report, isOpen, onClose }: GrowthReportModal
 
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsVisible(true);
       // 3秒後に自動でクローズ
       const timer = setTimeout(() => {

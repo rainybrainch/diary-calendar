@@ -1,5 +1,20 @@
 import { supabase } from './supabase';
-import { DiaryEntry, Tasks } from './types';
+import { DiaryEntry } from './types';
+
+interface SupabaseEntry {
+  id: string;
+  date: string;
+  text: string;
+  image_path: string | null;
+  mood: number;
+  energy: number;
+  activity: string;
+  work_time: number;
+  image_generated?: boolean;
+  created_at?: string;
+  updated_at?: string;
+  habit_checks?: Array<{ [key: string]: boolean }>;
+}
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
 const STORAGE_KEY = 'diary_entries_demo';
@@ -51,7 +66,7 @@ export const getDiaryEntries = async (
 
     if (error) throw new SupabaseError(error.message, error.code);
 
-    return (data || []).map((entry: any) => ({
+    return (data || []).map((entry: SupabaseEntry) => ({
       id: entry.id,
       date: entry.date,
       text: entry.text || '',

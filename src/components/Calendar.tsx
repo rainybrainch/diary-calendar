@@ -36,13 +36,16 @@ export function Calendar({ onSelectDate, selectedDate }: CalendarProps) {
   useEffect(() => {
     // ログイン状態: Supabase データを使用
     if (user && supabaseEntries.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setEntries(supabaseEntries);
     } else if (user) {
       // Supabase からデータ取得中またはエラー時は空
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setEntries([]);
     } else {
       // ログイン状態でない: ローカルデータを使用
       const data = storage.getData();
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setEntries(data.entries);
     }
   }, [user, supabaseEntries]);
@@ -101,10 +104,10 @@ export function Calendar({ onSelectDate, selectedDate }: CalendarProps) {
 
   // 記録有無の統計
   const recordStats = useMemo(() => {
-    const total = daysInMonth;
+    const total = getDaysInMonth(currentMonth);
     const withRecord = Object.keys(dateInfoMap).length;
     return { total, withRecord, percentage: Math.round((withRecord / total) * 100) };
-  }, [dateInfoMap, daysInMonth]);
+  }, [dateInfoMap, currentMonth]);
 
   return (
     <div className="p-6 bg-white rounded-lg shadow-lg">

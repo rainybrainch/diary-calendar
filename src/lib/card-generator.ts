@@ -1,6 +1,15 @@
 import { DiaryEntry } from './types';
 import { CardEvolutionState, createCardEvolutionState, addExpToCard, calculateEXPGain } from './card-evolution';
 
+export interface GenerateCardInput extends DiaryEntry {
+  title?: string;
+  tags?: string[];
+  evolution?: CardEvolutionState;
+  consecutiveDays?: number;
+  aiMood?: number;
+  aiEnergy?: number;
+}
+
 export interface DiaryCard {
   date: string;
   title: string;
@@ -22,9 +31,7 @@ export interface DiaryCard {
   evolution?: CardEvolutionState; // Lv・EXP・進化状態
 }
 
-const ATTRIBUTES = ['mind', 'body', 'work', 'relation', 'money', 'habit', 'dream'] as const;
-
-export function generateCard(entry: any, isOwner: boolean = true): DiaryCard {
+export function generateCard(entry: GenerateCardInput, isOwner: boolean = true): DiaryCard {
   const habitCount =
     (entry.tasks.pushups ? 1 : 0) +
     (entry.tasks.squats ? 1 : 0) +
@@ -34,8 +41,8 @@ export function generateCard(entry: any, isOwner: boolean = true): DiaryCard {
     (entry.tasks.ai_learning ? 1 : 0);
 
   const stats = {
-    mind: entry.aiMood || entry.mood || 0,
-    body: entry.aiEnergy || entry.energy || 0,
+    mind: entry.mood || 0,
+    body: entry.energy || 0,
     work: entry.workTime ? Math.min(10, Math.floor(entry.workTime / 60)) : 0,
     relation: 5, // TODO: 将来的に diary_entries に relation フィールドを追加
     money: 5, // TODO: 将来的に diary_entries に money フィールドを追加
@@ -43,8 +50,8 @@ export function generateCard(entry: any, isOwner: boolean = true): DiaryCard {
     dream: 5, // TODO: 将来的に diary_entries に dream フィールドを追加
   };
 
-  // Attribute 決定：AI content から来たものか、stats から決めるか
-  let attribute = entry.attribute || determineAttribute(stats);
+  // Attribute 決定：stats から決める
+  const attribute = determineAttribute(stats);
 
   // Rarity 決定：習慣達成数から
   const rarity = determineRarity(habitCount);

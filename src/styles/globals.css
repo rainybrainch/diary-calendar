@@ -14,8 +14,43 @@ html {
 
 body {
   background-color: #f3f4f6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+/* フォーカスインジケーター（キーボード操作時） */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* 高コントラストモード対応 */
+@media (prefers-contrast: more) {
+  body {
+    color: #000;
+    background-color: #fff;
+  }
+  button,
+  input,
+  textarea {
+    border-width: 2px;
+  }
+}
+
+/* 削減モーション対応 */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* スクロールバー */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -31,4 +66,22 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* dark mode サポート（将来用） */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #1f2937;
+    color: #f3f4f6;
+  }
+}
+
+/* PWA standalone モード */
+@media (display-mode: standalone) {
+  html {
+    padding-top: env(safe-area-inset-top);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }

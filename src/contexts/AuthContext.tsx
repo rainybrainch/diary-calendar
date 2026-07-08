@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 
@@ -23,22 +23,25 @@ interface AuthContextType {
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Mock User for demo mode
-const createDemoUser = (): User => ({
-  id: DEMO_USER_ID,
-  aud: 'authenticated',
-  role: 'authenticated',
-  email: 'demo@example.com',
-  email_confirmed_at: new Date().toISOString(),
-  phone: '',
-  confirmed_at: new Date().toISOString(),
-  last_sign_in_at: new Date().toISOString(),
-  app_metadata: { provider: 'demo' },
-  user_metadata: { demo: true },
-  identities: [],
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString(),
-  is_anonymous: false,
-} as any);
+const createDemoUser = (): User => {
+  const now = new Date().toISOString();
+  return {
+    id: DEMO_USER_ID,
+    aud: 'authenticated',
+    role: 'authenticated',
+    email: 'demo@example.com',
+    email_confirmed_at: now,
+    phone: '',
+    confirmed_at: now,
+    last_sign_in_at: now,
+    app_metadata: { provider: 'demo' },
+    user_metadata: { demo: true },
+    identities: [],
+    created_at: now,
+    updated_at: now,
+    is_anonymous: false,
+  } as unknown as User;
+};
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -47,11 +50,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchUsername = useCallback(async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('username')
+        .eq('id', userId)
+        .single();
+
+      if (error) throw error;
+      setUsername(data?.username || null);
+    } catch (error) {
+      console.error('Failed to fetch username:', error);
+      setUsername(null);
+    }
+  }, []);
+
   useEffect(() => {
     if (DEMO_MODE) {
       const demoUser = createDemoUser();
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUser(demoUser);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUsername('Demo User');
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(false);
       return;
     }
@@ -78,23 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => subscription?.unsubscribe();
-  }, []);
-
-  const fetchUsername = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('username')
-        .eq('id', userId)
-        .single();
-
-      if (error) throw error;
-      setUsername(data?.username || null);
-    } catch (error) {
-      console.error('Failed to fetch username:', error);
-      setUsername(null);
-    }
-  };
+  }, [fetchUsername]);
 
   const signUpWithEmail = async (email: string, password: string, username: string) => {
     if (DEMO_MODE) {

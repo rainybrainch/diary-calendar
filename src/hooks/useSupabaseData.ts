@@ -36,6 +36,7 @@ export function useSupabaseDiaryEntries(year: number, month: number) {
   }, [user, year, month]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchEntries();
   }, [fetchEntries]);
 

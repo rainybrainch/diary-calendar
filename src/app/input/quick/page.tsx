@@ -10,12 +10,19 @@ import { QuickInputFlow } from '@/components/QuickInputFlow';
 import { storage } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
 
+interface QuickInputData {
+  text: string;
+  mood: number;
+  energy: number;
+  date: string;
+}
+
 function QuickInputContent() {
   const router = useRouter();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: QuickInputData) => {
     setLoading(true);
 
     try {

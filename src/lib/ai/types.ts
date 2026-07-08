@@ -14,6 +14,7 @@ export interface AIQuestion {
  * AI回答コンテキスト
  */
 export interface AIAnswerContext {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   answers: Record<string, any>;
   previousAnswers?: string[];
   mood?: number;
