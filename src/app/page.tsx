@@ -6,9 +6,12 @@ import { DetailModal } from '@/components/DetailModal';
 import { DiaryGraph } from '@/components/DiaryGraph';
 import { HomeHero } from '@/components/HomeHero';
 import { ForestDisplay } from '@/components/ForestDisplay';
+import { AchievementsPanel } from '@/components/AchievementsPanel';
+import { AchievementUnlockedAnimation } from '@/components/AchievementUnlockedAnimation';
 import { AuthGuard } from '@/components/AuthGuard';
 import { useAuth } from '@/hooks/useAuth';
 import { useSupabaseDiaryEntries } from '@/hooks/useSupabaseData';
+import { useAchievements } from '@/hooks/useAchievements';
 import { storage } from '@/lib/storage';
 import { DiaryEntry } from '@/lib/types';
 import { initializeDemoData } from '@/lib/demo-data';
@@ -29,6 +32,7 @@ function DashboardContent() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [entries, setEntries] = useState<DiaryEntry[]>([]);
   const [showGraph, setShowGraph] = useState(false);
+  const { state: achievementState, newlyUnlocked } = useAchievements();
 
   // デモモード初期化（初回アクセス時にサンプルデータを生成）
   useEffect(() => {
@@ -159,6 +163,11 @@ function DashboardContent() {
                   {/* 森の成長表示 - 最重要エリア */}
                   <ForestDisplay forestState={forestState} />
 
+                  {/* 実績パネル - コンパクト表示 */}
+                  {achievementState && (
+                    <AchievementsPanel state={achievementState} compact={true} />
+                  )}
+
                   {/* 本日のタスク表示セクション */}
                   <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
                     <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">🎯 今日の習慣</h2>
@@ -205,10 +214,22 @@ function DashboardContent() {
             🎴 カード
           </Link>
           <Link
+            href="/calendar"
+            className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-indigo-500 text-white rounded hover:bg-indigo-600 inline-block transition"
+          >
+            📅 カレンダー
+          </Link>
+          <Link
             href="/ranking"
             className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-orange-500 text-white rounded hover:bg-orange-600 inline-block transition"
           >
             🏆 ランキング
+          </Link>
+          <Link
+            href="/achievements"
+            className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-yellow-500 text-white rounded hover:bg-yellow-600 inline-block transition"
+          >
+            🏅 実績
           </Link>
           <button
             onClick={handleExport}
@@ -262,6 +283,9 @@ function DashboardContent() {
             </div>
           </div>
         )}
+
+        {/* 実績解除アニメーション */}
+        <AchievementUnlockedAnimation achievements={newlyUnlocked} />
 
         <DetailModal
           date={selectedDate}
