@@ -147,6 +147,51 @@ Return as JSON array with objects containing: {id: string, question: string, typ
     return data.choices[0].message.content;
   }
 
+  async generateForestNoteJson(userText: string, date: string): Promise<unknown> {
+    const prompt = `以下のユーザーテキストから、Forest Note v1.0 JSON を生成してください。
+【入力テキスト】
+${userText}
+
+【生成要件】
+1. version: "1.0" 固定
+2. date: "${date}"
+3. scores オブジェクト（7項目、各0-100）
+4. theme, summary, テキスト説明等
+
+JSON形式で返してください。`;
+
+    const response = await this.callOpenAI(prompt);
+    return JSON.parse(response);
+  }
+
+  async generateCardJson(forestNote: unknown, date: string): Promise<unknown> {
+    const prompt = `以下の Forest Note JSON から、Card JSON v1.0 を生成してください。
+【入力】
+${JSON.stringify(forestNote)}
+
+【要件】
+- card_id, card_type, date, card_name, rarity, attribute, hp, atk, energy, skill, flavor_text, image_prompt, forest_note
+
+JSON形式で返してください。`;
+
+    const response = await this.callOpenAI(prompt);
+    return JSON.parse(response);
+  }
+
+  async generateImagePrompt(forestNote: unknown): Promise<string> {
+    const prompt = `以下の Forest Note から、カード用イラストプロンプトを生成してください。
+【入力】
+${JSON.stringify(forestNote)}
+
+【重要】
+- 絶対にテキスト・数字を含めない
+- 雰囲気・色合い・イメージのみ
+
+プレーンテキストで返してください。`;
+
+    return this.callOpenAI(prompt);
+  }
+
   private fallbackQuestions(): AIQuestion[] {
     return [
       {

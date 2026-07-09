@@ -214,6 +214,78 @@ export class DemoAIProvider implements AIProvider {
     return generateAIAdvice(defaultContext);
   }
 
+  async generateForestNoteJson(userText: string, date: string): Promise<unknown> {
+    // デモ用：固定の Forest Note JSON を返す
+    return {
+      version: '1.0',
+      date,
+      title: 'Demo Forest Note',
+      theme: 'バランスの日',
+      summary: 'デモ用のForest Note JSON です。',
+      scores: {
+        mental: 70,
+        body: 65,
+        work: 75,
+        relationship: 70,
+        money: 60,
+        habit: 80,
+        dream: 65,
+      },
+      mental: 'いい一日でした。',
+      body: '体調は良好。',
+      work: '仕事が進みました。',
+      relationship: '人間関係も良好。',
+      money: '家計管理できました。',
+      habit: '習慣を守れました。',
+      dream: '夢に向かって進めました。',
+      keywords: ['成長', '感謝'],
+      items: ['手帳'],
+      locations: ['家'],
+      activities: ['読書'],
+      emotions: ['満足'],
+      today_best: 'いい一日',
+      lesson: 'バランスが大切',
+      tomorrow: 'さらに頑張る',
+      ai_comment: 'いい一日ですね。',
+    };
+  }
+
+  async generateCardJson(forestNote: unknown, date: string): Promise<unknown> {
+    // デモ用：固定の Card JSON を返す
+    return {
+      card_id: 'demo_' + date.replace(/-/g, '') + '_001',
+      card_type: 'Attack',
+      date,
+      title: 'Demo Card',
+      card_name: 'デモの戦士',
+      rarity: 'SR',
+      attribute: 'Light',
+      hp: 700,
+      atk: 750,
+      energy: 7,
+      skill: {
+        name: 'デモスキル',
+        type: 'Light',
+        effect: 'デモ用スキル',
+      },
+      flavor_text: 'これはデモカードです。',
+      image_prompt: 'Demo illustration, calm atmosphere, no text',
+      image_url: '',
+      forest_note: {
+        theme: 'デモ',
+        summary: 'デモです',
+        today_best: 'デモ',
+        lesson: 'デモ',
+        tomorrow: 'デモ',
+      },
+    };
+  }
+
+  async generateImagePrompt(forestNote: unknown): Promise<string> {
+    // デモ用：固定のプロンプトを返す
+    return 'Calm and balanced illustration, soft colors, peaceful atmosphere, no text or numbers';
+  }
+
   reset(): void {
     this.questionCount = 0;
   }

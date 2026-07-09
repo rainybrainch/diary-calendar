@@ -103,6 +103,24 @@ export interface AIProvider {
    * プロバイダーの健全性確認
    */
   isHealthy(): Promise<boolean>;
+
+  /**
+   * Forest Note JSON を生成（Phase 5）
+   * ユーザーテキスト → Forest Note v1.0 JSON
+   */
+  generateForestNoteJson?(userText: string, date: string): Promise<unknown>;
+
+  /**
+   * Card JSON を生成（Phase 5）
+   * Forest Note JSON → Card JSON v1.0
+   */
+  generateCardJson?(forestNote: unknown, date: string): Promise<unknown>;
+
+  /**
+   * Image Prompt を生成（Phase 5）
+   * Forest Note → イラスト用プロンプト（文字なし）
+   */
+  generateImagePrompt?(forestNote: unknown): Promise<string>;
 }
 
 /**
