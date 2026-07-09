@@ -18,8 +18,10 @@ import { useSupabaseDiaryEntries } from '@/hooks/useSupabaseData';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import { GrowthReport, AIAdvice } from '@/lib/ai/types';
-import { DiaryEntry } from '@/lib/types';
+import { DiaryEntry, CardJSON } from '@/lib/types';
 import { DiaryCard } from '@/lib/card-generator';
+import { validateCardJson } from '@/lib/forest-note-validator';
+import { saveDiaryEntry } from '@/lib/supabase-api';
 
 interface AIGeneratedContent {
   title: string;
@@ -47,6 +49,12 @@ function ConfirmContent() {
   const [error, setError] = useState<string | null>(null);
   const [rank, setRank] = useState<number | null>(null);
   const [previousRank, setPreviousRank] = useState<number | null>(null);
+  // Card JSON input state
+  const [showCardInput, setShowCardInput] = useState(false);
+  const [cardJsonInput, setCardJsonInput] = useState('');
+  const [cardJsonPreview, setCardJsonPreview] = useState<CardJSON | null>(null);
+  const [cardJsonError, setCardJsonError] = useState<string | null>(null);
+  const [cardSaving, setCardSaving] = useState(false);
 
   // Supabase データ取得（成長レポート用）
   const now = new Date();
@@ -54,6 +62,85 @@ function ConfirmContent() {
     now.getFullYear(),
     now.getMonth()
   );
+
+  // Card JSON パース＆プレビュー
+  const parseAndPreviewCardJson = (inputJson: string) => {
+    if (!inputJson.trim()) {
+      setCardJsonError(null);
+      setCardJsonPreview(null);
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(inputJson);
+      const validated = validateCardJson(parsed);
+      setCardJsonPreview(validated);
+      setCardJsonError(null);
+    } catch (err) {
+      setCardJsonPreview(null);
+      setCardJsonError(err instanceof Error ? err.message : '不明なエラー');
+    }
+  };
+
+  // Card JSON 入力変更ハンドラ
+  const handleCardJsonInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    setCardJsonInput(value);
+    parseAndPreviewCardJson(value);
+  };
+
+  // Card JSON 保存ハンドラ
+  const handleSaveCardJson = async () => {
+    if (!user || !entry || !cardJsonPreview) {
+      setCardJsonError('保存に必要なデータが不足しています');
+      return;
+    }
+
+    try {
+      setCardSaving(true);
+      setCardJsonError(null);
+
+      // localStorage バックアップに cardJson を含める
+      const allEntries = (() => {
+        if (typeof window === 'undefined') return [];
+        const stored = localStorage.getItem('diary_entries_demo');
+        return stored ? JSON.parse(stored) : [];
+      })();
+
+      const entryIndex = allEntries.findIndex((e: DiaryEntry) => e.date === entry.date);
+      if (entryIndex >= 0) {
+        allEntries[entryIndex] = {
+          ...allEntries[entryIndex],
+          cardJson: cardJsonPreview,
+          cardGenerated: true,
+        };
+        localStorage.setItem('diary_entries_demo', JSON.stringify(allEntries));
+      }
+
+      // Supabase に cardJson を保存
+      const updatedEntry: DiaryEntry = {
+        ...entry,
+        cardJson: cardJsonPreview,
+        cardGenerated: true,
+      };
+
+      await saveDiaryEntry(user.id, updatedEntry);
+
+      setEntry(updatedEntry);
+      setShowCardInput(false);
+      setCardJsonInput('');
+      setCardJsonPreview(null);
+
+      // 成功メッセージ
+      alert('Card JSON を保存しました！');
+    } catch (err) {
+      setCardJsonError(
+        err instanceof Error ? err.message : 'Card JSON の保存に失敗しました'
+      );
+    } finally {
+      setCardSaving(false);
+    }
+  };
 
   // AI生成コンテンツを読み込む
   useEffect(() => {
@@ -358,6 +445,107 @@ function ConfirmContent() {
             isOpen={showAdvice}
             onClose={() => setShowAdvice(false)}
           />
+        )}
+
+        {/* Card JSON Input Section */}
+        {!showCardInput ? (
+          <div className="mb-6">
+            <button
+              onClick={() => setShowCardInput(true)}
+              className="w-full px-6 py-3 bg-pink-500 text-white rounded-lg hover:bg-pink-600 font-bold transition"
+            >
+              ➕ Card JSON を追加（手動入力）
+            </button>
+          </div>
+        ) : (
+          <div className="bg-pink-50 border-2 border-pink-300 rounded-lg p-6 mb-6">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">📝 Card JSON 入力</h3>
+
+            {/* Card JSON Textarea */}
+            <div className="mb-4">
+              <label className="block text-sm font-bold text-gray-700 mb-2">
+                Card JSON (v1.0 形式)
+              </label>
+              <textarea
+                value={cardJsonInput}
+                onChange={handleCardJsonInputChange}
+                placeholder={`{
+  "card_id": "card_001",
+  "card_type": "Attack",
+  "date": "2026-07-09",
+  "title": "良い一日",
+  "card_name": "朝日の戦士",
+  "rarity": "SR",
+  "attribute": "Fire",
+  "hp": 100,
+  "atk": 85,
+  "energy": 8,
+  "skill": {
+    "name": "朝焼けの波動",
+    "type": "Fire",
+    "effect": "全体に80のダメージ"
+  },
+  "flavor_text": "新しい朝が始まる",
+  "image_prompt": "...",
+  "image_url": "",
+  "forest_note": {
+    "theme": "...",
+    "summary": "...",
+    "today_best": "...",
+    "lesson": "...",
+    "tomorrow": "..."
+  }
+}`}
+                className="w-full h-64 p-3 border-2 border-gray-300 rounded-lg font-mono text-sm focus:outline-none focus:border-pink-500"
+              />
+            </div>
+
+            {/* Card JSON Preview */}
+            {cardJsonPreview && (
+              <div className="bg-white rounded-lg p-4 mb-4 border-l-4 border-pink-500">
+                <div className="text-sm text-gray-700 mb-3">
+                  <div className="font-bold">Card ID: {cardJsonPreview.card_id}</div>
+                  <div className="font-bold">Name: {cardJsonPreview.card_name}</div>
+                  <div className="font-bold">Type: {cardJsonPreview.card_type}</div>
+                  <div className="text-xs text-gray-500 mt-2">
+                    Rarity: {cardJsonPreview.rarity} | Attribute: {cardJsonPreview.attribute}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    Stats: HP {cardJsonPreview.hp} / ATK {cardJsonPreview.atk} / Energy {cardJsonPreview.energy}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Error Display */}
+            {cardJsonError && (
+              <div className="bg-red-100 border-2 border-red-500 rounded-lg p-4 mb-4 text-red-700 text-sm">
+                ❌ {cardJsonError}
+              </div>
+            )}
+
+            {/* Save / Cancel Buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={handleSaveCardJson}
+                disabled={!cardJsonPreview || cardSaving}
+                className="flex-1 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 disabled:bg-gray-400 font-bold transition"
+              >
+                {cardSaving ? '保存中...' : '💾 Card JSON を保存'}
+              </button>
+              <button
+                onClick={() => {
+                  setShowCardInput(false);
+                  setCardJsonInput('');
+                  setCardJsonPreview(null);
+                  setCardJsonError(null);
+                }}
+                className="flex-1 px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 font-bold transition"
+              >
+                ❌ キャンセル
+              </button>
+            </div>
+          </div>
         )}
 
         {/* Action Buttons */}
