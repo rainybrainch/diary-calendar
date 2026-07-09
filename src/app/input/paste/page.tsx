@@ -102,10 +102,11 @@ function PasteContent() {
         }
 
         // diary_entries に保存（JSON モード）
-        await saveDiaryEntry(user.id, {
+        // 注：mood/energy はデフォルト 5。GPT API v2 で生成される場合は上書きされる
+        const entry = {
           date: jsonPreview.date,
           text: jsonPreview.summary || '',
-          mood: 5, // デフォルト値
+          mood: 5, // デフォルト値（GPT が提供しない場合）
           energy: 5,
           activity: '',
           workTime: 0,
@@ -137,7 +138,8 @@ function PasteContent() {
           moneyText: jsonPreview.money,
           habitText: jsonPreview.habit,
           dreamText: jsonPreview.dream,
-        });
+        };
+        await saveDiaryEntry(user.id, entry);
 
         // localStorage にもバックアップ保存
         storage.saveEntry({

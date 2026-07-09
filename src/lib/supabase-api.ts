@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { DiaryEntry, ForestNoteJSON, CardJSON } from './types';
+import { mapSupabaseEntryToDiaryEntry, mapDiaryEntryToSupabase } from './entry-utils';
 
 interface SupabaseEntry {
   id: string;
@@ -103,66 +104,9 @@ export const getDiaryEntries = async (
 
     if (error) throw new SupabaseError(error.message, error.code);
 
-    return (data || []).map((entry: SupabaseEntry) => ({
-      id: entry.id,
-      date: entry.date,
-      text: entry.text || '',
-      imagePath: entry.image_path,
-      mood: entry.mood || 0,
-      energy: entry.energy || 0,
-      activity: entry.activity || '',
-      workTime: entry.work_time || 0,
-      tasks: entry.habit_checks?.[0]
-        ? {
-            pushups: entry.habit_checks[0].pushups || false,
-            squats: entry.habit_checks[0].squats || false,
-            plank: entry.habit_checks[0].plank || false,
-            run: entry.habit_checks[0].run || false,
-            reading: entry.habit_checks[0].reading || false,
-            ai_learning: entry.habit_checks[0].ai_learning || false,
-          }
-        : { pushups: false, squats: false, plank: false, run: false, reading: false, ai_learning: false },
-      imageGenerated: entry.image_generated || false,
-      createdAt: entry.created_at,
-      updatedAt: entry.updated_at,
-      // 7-item life log scores
-      mental: entry.mental,
-      body: entry.body,
-      work: entry.work,
-      relationship: entry.relationship,
-      money: entry.money,
-      habit: entry.habit,
-      dream: entry.dream,
-      // 7-item life log text
-      mentalText: entry.mental_text,
-      bodyText: entry.body_text,
-      workText: entry.work_text,
-      relationshipText: entry.relationship_text,
-      moneyText: entry.money_text,
-      habitText: entry.habit_text,
-      dreamText: entry.dream_text,
-      // Meta lists
-      keywords: entry.keywords || [],
-      items: entry.items || [],
-      locations: entry.locations || [],
-      activities: entry.activities || [],
-      emotions: entry.emotions || [],
-      // Daily summary
-      todayBest: entry.today_best,
-      lesson: entry.lesson,
-      tomorrow: entry.tomorrow,
-      aiComment: entry.ai_comment,
-      // Forest Note & Card data
-      forestNoteJson: entry.forest_note_json,
-      imagePrompt: entry.image_prompt,
-      imageUrl: entry.image_url,
-      cardId: entry.card_id,
-      cardJson: entry.card_json,
-      cardImageUrl: entry.card_image_url,
-      // Generation flags
-      forestGenerated: entry.forest_generated || false,
-      cardGenerated: entry.card_generated || false,
-    }));
+    return (data || []).map((entry: SupabaseEntry) =>
+      mapSupabaseEntryToDiaryEntry(entry as unknown as Record<string, unknown>)
+    );
   } catch (error) {
     if (error instanceof SupabaseError) throw error;
     throw new SupabaseError(`日記データ取得エラー: ${error instanceof Error ? error.message : '不明なエラー'}`);
@@ -195,50 +139,7 @@ export const saveDiaryEntry = async (userId: string, entry: DiaryEntry): Promise
 
     const diaryData = {
       user_id: userId,
-      date: entry.date,
-      text: entry.text,
-      mood: entry.mood,
-      energy: entry.energy,
-      activity: entry.activity,
-      work_time: entry.workTime,
-      image_generated: entry.imageGenerated,
-      // 7-item life log scores
-      mental: entry.mental,
-      body: entry.body,
-      work: entry.work,
-      relationship: entry.relationship,
-      money: entry.money,
-      habit: entry.habit,
-      dream: entry.dream,
-      // 7-item life log text
-      mental_text: entry.mentalText,
-      body_text: entry.bodyText,
-      work_text: entry.workText,
-      relationship_text: entry.relationshipText,
-      money_text: entry.moneyText,
-      habit_text: entry.habitText,
-      dream_text: entry.dreamText,
-      // Meta lists
-      keywords: entry.keywords || [],
-      items: entry.items || [],
-      locations: entry.locations || [],
-      activities: entry.activities || [],
-      emotions: entry.emotions || [],
-      // Daily summary
-      today_best: entry.todayBest,
-      lesson: entry.lesson,
-      tomorrow: entry.tomorrow,
-      ai_comment: entry.aiComment,
-      // Forest Note & Card data
-      forest_note_json: entry.forestNoteJson,
-      image_prompt: entry.imagePrompt,
-      image_url: entry.imageUrl,
-      card_id: entry.cardId,
-      card_json: entry.cardJson,
-      card_image_url: entry.cardImageUrl,
-      // Generation flags
-      forest_generated: entry.forestGenerated || false,
-      card_generated: entry.cardGenerated || false,
+      ...mapDiaryEntryToSupabase(entry),
     };
 
     const { data: diaryEntry, error: diaryError } = await supabase
@@ -272,57 +173,12 @@ export const saveDiaryEntry = async (userId: string, entry: DiaryEntry): Promise
 
     if (habitError) throw new SupabaseError(`習慣チェック保存エラー: ${habitError.message}`, habitError.code);
 
-    return {
-      id: diaryEntry.id,
-      date: diaryEntry.date,
-      text: diaryEntry.text,
-      imagePath: diaryEntry.image_path,
-      mood: diaryEntry.mood,
-      energy: diaryEntry.energy,
-      activity: diaryEntry.activity,
-      workTime: diaryEntry.work_time,
-      tasks: entry.tasks,
-      imageGenerated: diaryEntry.image_generated,
-      createdAt: diaryEntry.created_at,
-      updatedAt: diaryEntry.updated_at,
-      // 7-item life log scores
-      mental: entry.mental,
-      body: entry.body,
-      work: entry.work,
-      relationship: entry.relationship,
-      money: entry.money,
-      habit: entry.habit,
-      dream: entry.dream,
-      // 7-item life log text
-      mentalText: entry.mentalText,
-      bodyText: entry.bodyText,
-      workText: entry.workText,
-      relationshipText: entry.relationshipText,
-      moneyText: entry.moneyText,
-      habitText: entry.habitText,
-      dreamText: entry.dreamText,
-      // Meta lists
-      keywords: entry.keywords || [],
-      items: entry.items || [],
-      locations: entry.locations || [],
-      activities: entry.activities || [],
-      emotions: entry.emotions || [],
-      // Daily summary
-      todayBest: entry.todayBest,
-      lesson: entry.lesson,
-      tomorrow: entry.tomorrow,
-      aiComment: entry.aiComment,
-      // Forest Note & Card data
-      forestNoteJson: entry.forestNoteJson,
-      imagePrompt: entry.imagePrompt,
-      imageUrl: entry.imageUrl,
-      cardId: entry.cardId,
-      cardJson: entry.cardJson,
-      cardImageUrl: entry.cardImageUrl,
-      // Generation flags
-      forestGenerated: entry.forestGenerated || false,
-      cardGenerated: entry.cardGenerated || false,
-    };
+    // Supabase の応答をマッピングして返す
+    const result = mapSupabaseEntryToDiaryEntry({
+      ...diaryEntry,
+      habit_checks: [entry.tasks],
+    });
+    return result;
   } catch (error) {
     if (error instanceof SupabaseError) throw error;
     throw new SupabaseError(`日記保存失敗: ${error instanceof Error ? error.message : '不明なエラー'}`);

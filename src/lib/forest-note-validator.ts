@@ -1,7 +1,8 @@
 import { ForestNoteJSON, CardJSON } from './types';
 
 /**
- * Forest Note JSON バリデーション（仕様書 Chapter2 準拠）
+ * Forest Note JSON バリデーション（仕様書 Chapter2 準拠 - 手動入力用）
+ * すべての必須項目をチェック
  * @throws Error if validation fails
  */
 export function validateForestNoteJson(json: unknown): ForestNoteJSON {
@@ -48,28 +49,10 @@ export function validateForestNoteJson(json: unknown): ForestNoteJSON {
   }
 
   // date 形式チェック（YYYY-MM-DD）
-  if (typeof obj.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(obj.date)) {
-    throw new Error('dateはYYYY-MM-DD形式で入力してください');
-  }
+  validateDateFormat(obj.date);
 
   // scores オブジェクトチェック
-  const scores = obj.scores as Record<string, unknown>;
-  const scoreFields = ['mental', 'body', 'work', 'relationship', 'money', 'habit', 'dream'];
-
-  for (const field of scoreFields) {
-    if (!(field in scores)) {
-      throw new Error(`scores.${field}が不足しています`);
-    }
-
-    const value = scores[field];
-    if (typeof value !== 'number') {
-      throw new Error(`scores.${field}は数値である必要があります`);
-    }
-
-    if (value < 0 || value > 100) {
-      throw new Error('スコアは0〜100で入力してください');
-    }
-  }
+  validateScoresObject(obj.scores);
 
   // 文字列フィールドチェック
   const stringFields = ['title', 'theme', 'summary', 'mental', 'body', 'work', 'relationship', 'money', 'habit', 'dream', 'today_best', 'lesson', 'tomorrow', 'ai_comment'];
@@ -87,8 +70,116 @@ export function validateForestNoteJson(json: unknown): ForestNoteJSON {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return obj as any as ForestNoteJSON;
+  return obj as unknown as ForestNoteJSON;
+}
+
+/**
+ * Forest Note JSON バリデーション（GPT API用 - 部分的な項目許可）
+ * GPT が生成した部分的な JSON に対応（欠落フィールドに デフォルト値を設定）
+ * @throws Error if validation fails on critical fields
+ */
+export function validateForestNoteJsonPartial(json: unknown): ForestNoteJSON {
+  if (!json || typeof json !== 'object') {
+    throw new Error('JSON形式が正しくありません');
+  }
+
+  const obj = json as Record<string, unknown>;
+
+  // 最小限の必須項目
+  if (!obj.version) {
+    throw new Error('version フィールドは必須です');
+  }
+
+  if (obj.version !== '1.0') {
+    throw new Error('version は "1.0" である必要があります');
+  }
+
+  if (!obj.date) {
+    throw new Error('date フィールドは必須です');
+  }
+
+  validateDateFormat(obj.date);
+
+  // scores チェック（ただし欠落フィールドはデフォルト 50 を設定）
+  const scores = (obj.scores as Record<string, unknown>) || {};
+  const scoreFields = ['mental', 'body', 'work', 'relationship', 'money', 'habit', 'dream'];
+  const validatedScores: Record<string, number> = {};
+
+  for (const field of scoreFields) {
+    const value = scores[field];
+    if (value === undefined || value === null) {
+      // デフォルト: 50 (中立的なスコア)
+      validatedScores[field] = 50;
+    } else if (typeof value !== 'number') {
+      throw new Error(`scores.${field}は数値である必要があります`);
+    } else if (value < 0 || value > 100) {
+      throw new Error('スコアは0〜100で入力してください');
+    } else {
+      validatedScores[field] = value;
+    }
+  }
+
+  // テキストフィールド（欠落時は空文字列）
+  const stringFieldsWithDefaults = [
+    'title', 'theme', 'summary', 'mental', 'body', 'work', 'relationship',
+    'money', 'habit', 'dream', 'today_best', 'lesson', 'tomorrow', 'ai_comment'
+  ];
+  for (const field of stringFieldsWithDefaults) {
+    if (!obj[field]) {
+      obj[field] = '';
+    }
+  }
+
+  // 配列フィールド（欠落時は空配列）
+  const arrayFields = ['keywords', 'items', 'locations', 'activities', 'emotions'];
+  for (const field of arrayFields) {
+    if (!obj[field] || !Array.isArray(obj[field])) {
+      obj[field] = [];
+    }
+  }
+
+  // スコアを上書き
+  obj.scores = validatedScores;
+
+  return obj as unknown as ForestNoteJSON;
+}
+
+/**
+ * 日付形式を検証
+ */
+function validateDateFormat(date: unknown): void {
+  if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    throw new Error('dateはYYYY-MM-DD形式で入力してください');
+  }
+
+  // 日付が有効か確認
+  const d = new Date(date + 'T00:00:00Z');
+  if (isNaN(d.getTime())) {
+    throw new Error('無効な日付です');
+  }
+}
+
+/**
+ * scores オブジェクトを検証
+ */
+function validateScoresObject(scores: unknown): void {
+  const scoreFields = ['mental', 'body', 'work', 'relationship', 'money', 'habit', 'dream'];
+  const scoresObj = scores as Record<string, unknown>;
+
+  for (const field of scoreFields) {
+    if (!(field in scoresObj)) {
+      throw new Error(`scores.${field}が不足しています`);
+    }
+
+    const value = scoresObj[field];
+    if (typeof value !== 'number') {
+      throw new Error(`scores.${field}は数値である必要があります`);
+    }
+
+    if (value < 0 || value > 100) {
+      throw new Error('スコアは0〜100で入力してください');
+    }
+  }
 }
 
 /**
@@ -177,6 +268,5 @@ export function validateCardJson(json: unknown): CardJSON {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return obj as any as CardJSON;
+  return obj as unknown as CardJSON;
 }
