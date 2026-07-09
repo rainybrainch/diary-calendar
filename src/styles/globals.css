@@ -2,6 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Forest Note デザインシステム */
+:root {
+  /* 森パレット */
+  --forest-dark: #1a4d2e;      /* 深緑 */
+  --forest-primary: #2d6a4f;   /* 森の主色 */
+  --forest-light: #52b788;     /* 明るい緑 */
+  --forest-gold: #d4af37;      /* 木漏れ日ゴールド */
+  --forest-brown: #8b6f47;     /* 木の幹 */
+  --forest-cream: #f1f0e8;     /* 羊皮紙色 */
+  --forest-sky-spring: #e0f6ff;
+  --forest-sky-summer: #87ceeb;
+  --forest-sky-autumn: #ffe4b5;
+  --forest-sky-winter: #d3d3d3;
+
+  /* グローバルBG */
+  --bg-gradient-home: linear-gradient(135deg, #1a4d2e 0%, #2d6a4f 50%, #134e4a 100%);
+  --bg-page: #f8f7f3;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -13,9 +32,187 @@ html {
 }
 
 body {
-  background-color: #f3f4f6;
+  background-color: var(--bg-page);
+  color: #1f2937;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* 再利用可能なコンポーネント - Tailwind v4対応 */
+@layer components {
+  .forest-panel {
+    background: linear-gradient(135deg, #f8f7f3 0%, #f1f0e8 100%);
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #dcfce7;
+  }
+
+  .forest-btn-primary {
+    background: linear-gradient(to bottom, #22c55e, #16a34a);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: bold;
+    transition-property: all;
+    transition-duration: 300ms;
+    border: none;
+    cursor: pointer;
+  }
+
+  .forest-btn-primary:hover {
+    background: linear-gradient(to bottom, #16a34a, #15803d);
+  }
+
+  .forest-btn-primary:active {
+    transform: scale(0.95);
+  }
+
+  .forest-btn-secondary {
+    background: linear-gradient(to bottom, #3b82f6, #1d4ed8);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: bold;
+    transition-property: all;
+    transition-duration: 300ms;
+    border: none;
+    cursor: pointer;
+  }
+
+  .forest-btn-secondary:hover {
+    background: linear-gradient(to bottom, #1d4ed8, #1e40af);
+  }
+
+  .forest-btn-secondary:active {
+    transform: scale(0.95);
+  }
+
+  .forest-btn-danger {
+    background: linear-gradient(to bottom, #ef4444, #dc2626);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: bold;
+    transition-property: all;
+    transition-duration: 300ms;
+    border: none;
+    cursor: pointer;
+  }
+
+  .forest-btn-danger:hover {
+    background: linear-gradient(to bottom, #dc2626, #b91c1c);
+  }
+
+  .forest-btn-danger:active {
+    transform: scale(0.95);
+  }
+
+  .forest-stat-box {
+    background-color: white;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid #22c55e;
+  }
+
+  .forest-hero-title {
+    font-size: 2.25rem;
+    font-weight: bold;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  @media (min-width: 768px) {
+    .forest-hero-title {
+      font-size: 3rem;
+    }
+  }
+
+  .forest-subtitle {
+    font-size: 0.875rem;
+    color: #f0fdf4;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+
+  @media (min-width: 768px) {
+    .forest-subtitle {
+      font-size: 1rem;
+    }
+  }
+}
+
+/* キーフレームアニメーション */
+@keyframes sway {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-0.5deg);
+  }
+  75% {
+    transform: rotate(0.5deg);
+  }
+}
+
+@keyframes float-gentle {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.6);
+  }
+}
+
+@keyframes level-up {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@layer utilities {
+  .animate-sway {
+    animation: sway 3s ease-in-out infinite;
+  }
+
+  .animate-float-gentle {
+    animation: float-gentle 4s ease-in-out infinite;
+  }
+
+  .animate-twinkle {
+    animation: twinkle 2s ease-in-out infinite;
+  }
+
+  .animate-glow-pulse {
+    animation: glow-pulse 2s ease-in-out infinite;
+  }
+
+  .animate-level-up {
+    animation: level-up 0.6s ease-in-out;
+  }
 }
 
 /* フォーカスインジケーター（キーボード操作時） */

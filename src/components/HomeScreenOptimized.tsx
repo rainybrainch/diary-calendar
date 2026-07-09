@@ -17,15 +17,6 @@ interface HomeScreenOptimizedProps {
   user?: User;
 }
 
-const HABITS = [
-  { id: 'pushups', label: 'プッシュアップ', emoji: '💪' },
-  { id: 'squats', label: 'スクワット', emoji: '🦵' },
-  { id: 'plank', label: 'プランク', emoji: '🏋️' },
-  { id: 'run', label: 'ラン', emoji: '🏃' },
-  { id: 'reading', label: '読書', emoji: '📚' },
-  { id: 'ai_learning', label: 'AI学習', emoji: '🤖' },
-] as const;
-
 function HomeScreenOptimizedComponent({
   entries,
   achievementState,
@@ -84,92 +75,87 @@ function HomeScreenOptimizedComponent({
   const todayEntry = entries.find((e) => e.date === today);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
-      {/* トップバー（最小化） */}
-      <header className="flex-shrink-0 bg-white shadow-sm border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">🌲 Forest Note</h1>
-          <p className="text-xs text-gray-500 mt-0.5">毎朝3分の成長記録</p>
-        </div>
-        <div className="text-right">
-          {user && <p className="text-xs text-gray-600">{user.email}</p>}
-          <div
-            className="text-sm font-bold text-indigo-600 mt-1"
-            role="status"
-            aria-live="polite"
-            aria-label={`連続 ${continuousDays} 日達成中`}
-          >
-            連続 {continuousDays} 日
+    <div className="min-h-screen bg-gradient-to-b from-green-50 to-emerald-50 flex flex-col pb-24">
+      {/* ヘッダー */}
+      <header className="bg-gradient-to-r from-green-900 to-emerald-900 text-white shadow-lg py-6 px-4 sticky top-0 z-40">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <div>
+            <h1 className="forest-hero-title text-3xl md:text-4xl">🌲 Forest Note</h1>
+            <p className="forest-subtitle mt-2">毎朝3分の成長記録</p>
+          </div>
+          <div className="text-right hidden sm:block">
+            {user && <p className="text-xs text-green-100">{user.email}</p>}
+            <div
+              className="text-sm font-bold text-yellow-300 mt-1"
+              role="status"
+              aria-live="polite"
+              aria-label={`連続 ${continuousDays} 日達成中`}
+            >
+              連続 {continuousDays} 日 🔥
+            </div>
           </div>
         </div>
       </header>
 
       {/* メインコンテンツ */}
-      <main className="flex-1 flex flex-col overflow-auto">
-        {/* 森の成長（大きく表示） */}
-        <section className="flex-1 flex items-center justify-center px-4 py-6">
-          <div className="w-full max-w-md">
-            <ForestDisplay forestState={forestState} />
+      <main className="flex-1 flex flex-col px-4 max-w-4xl mx-auto w-full py-6">
+        {/* EXPプレビュー（上部ミニサマリー） */}
+        <section className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+          <div className="forest-stat-box">
+            <div className="text-xs text-gray-600 font-semibold">森レベル</div>
+            <div className="text-2xl font-bold text-green-600 mt-1">Lv {forestState.level}</div>
           </div>
+          <div className="forest-stat-box">
+            <div className="text-xs text-gray-600 font-semibold">今日の習慣</div>
+            <div className="text-2xl font-bold text-amber-600 mt-1">{taskCount}/6</div>
+          </div>
+          <div className="forest-stat-box hidden md:block">
+            <div className="text-xs text-gray-600 font-semibold">総カード枚数</div>
+            <div className="text-2xl font-bold text-rose-600 mt-1">{entries.length}</div>
+          </div>
+        </section>
+
+        {/* 森の成長（メイン） */}
+        <section className="mb-6">
+          <ForestDisplay forestState={forestState} />
         </section>
 
         {/* 実績パネル（コンパクト） */}
         {achievementState && (
-          <section className="px-4 pb-4">
+          <section className="mb-6">
             <AchievementsPanel state={achievementState} compact={true} />
           </section>
         )}
 
-        {/* 今日の習慣チェック（最小） */}
+        {/* 今日の記録CTA */}
         {todayEntry === undefined && (
-          <section className="px-4 pb-4">
-            <div
-              className="bg-blue-50 rounded-lg border-2 border-blue-300 p-4 text-center"
-              role="status"
-              aria-label="まだ今日の記録がありません"
-            >
-              <p className="text-sm font-bold text-blue-800 mb-2">
-                📝 まだ今日の記録がありません
-              </p>
-              <p className="text-xs text-blue-700 mb-3">
-                下の「記録する」ボタンから3分で完了できます
-              </p>
+          <section className="mb-6">
+            <Link href="/input/paste">
+              <button
+                className="w-full bg-gradient-to-b from-green-500 to-emerald-600 text-white py-4 rounded-lg font-bold text-lg shadow-lg hover:shadow-xl hover:from-green-600 hover:to-emerald-700 transition-all transform hover:scale-105 flex items-center justify-center gap-2"
+                aria-label="今日の記録を入力する"
+              >
+                <span className="text-2xl animate-glow-pulse">✨</span>
+                <span>今日の記録を始める</span>
+              </button>
+            </Link>
+          </section>
+        )}
+
+        {/* 今日の成長概要 */}
+        {todayEntry && (
+          <section className="forest-panel p-6">
+            <h2 className="text-lg font-bold text-green-800 mb-4">📝 今日の記録済み</h2>
+            <div className="flex items-center gap-4">
+              <div className="text-3xl">✅</div>
+              <div>
+                <p className="text-sm text-gray-600">習慣達成: {taskCount}/6</p>
+                <p className="text-xs text-gray-500 mt-1">本日分を記録しました</p>
+              </div>
             </div>
           </section>
         )}
       </main>
-
-      {/* フローティングアクションボタン（下部固定） */}
-      <nav
-        className="flex-shrink-0 bg-white shadow-2xl border-t-2 border-gray-200 px-4 py-3 grid grid-cols-3 gap-2"
-        role="navigation"
-        aria-label="メインナビゲーション"
-      >
-        <Link href="/">
-          <button
-            aria-label="ホーム画面に戻る"
-            className="w-full py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-bold text-sm transition focus:outline-none focus:ring-2 focus:ring-blue-700"
-          >
-            🏠 ホーム
-          </button>
-        </Link>
-        <Link href="/input/paste">
-          <button
-            aria-label="今日の記録を入力する"
-            className="w-full py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-bold text-sm transition shadow-lg transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-700"
-          >
-            ✏️ 記録する
-          </button>
-        </Link>
-        <Link href="/calendar">
-          <button
-            aria-label="カレンダー画面を開く"
-            className="w-full py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 font-bold text-sm transition focus:outline-none focus:ring-2 focus:ring-indigo-700"
-          >
-            📅 確認
-          </button>
-        </Link>
-      </nav>
 
       {/* 実績解除アニメーション */}
       <AchievementUnlockedAnimation achievements={newlyUnlocked} />

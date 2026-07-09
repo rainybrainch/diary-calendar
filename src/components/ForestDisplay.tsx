@@ -9,29 +9,43 @@ interface ForestDisplayProps {
 export function ForestDisplay({ forestState }: ForestDisplayProps) {
   const { level, trees, grass, flowers, animals, season, skyColor } = forestState;
 
+  // 季節別グラデーション背景
+  const getSeasonGradient = () => {
+    switch (season) {
+      case 'spring':
+        return 'linear-gradient(to bottom, #e0f6ff 0%, #b3e5fc 50%, #81d4fa 100%)';
+      case 'summer':
+        return 'linear-gradient(to bottom, #87ceeb 0%, #87ceeb 50%, #e0f6ff 100%)';
+      case 'autumn':
+        return 'linear-gradient(to bottom, #ffe4b5 0%, #ffd999 50%, #ffcc80 100%)';
+      case 'winter':
+        return 'linear-gradient(to bottom, #e8e8e8 0%, #d3d3d3 50%, #c0c0c0 100%)';
+      default:
+        return skyColor;
+    }
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6 mb-6 overflow-hidden">
-      {/* タイトル */}
-      <div className="flex items-center justify-between mb-4">
+    <div className="forest-panel shadow-xl overflow-hidden">
+      {/* タイトルエリア */}
+      <div className="bg-gradient-to-r from-green-700 to-emerald-700 text-white px-6 py-4 flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">🌲 あなたの森</h2>
-          <p className="text-xs text-gray-500">毎日の習慣で森が育ちます</p>
+          <h2 className="text-2xl font-bold">🌲 あなたの森</h2>
+          <p className="text-sm text-green-50">毎日の習慣で育ちます</p>
         </div>
         <div className="text-right">
-          <div className="text-sm font-bold text-green-600">
-            Lv {level}
-          </div>
-          <div className="text-xs text-gray-500">{getSeasonLabel(season)}</div>
+          <div className="text-2xl font-bold text-yellow-300">Lv {level}</div>
+          <div className="text-sm text-green-100">{getSeasonLabel(season)}</div>
         </div>
       </div>
 
       {/* 森の描画エリア */}
-      <div className="bg-gradient-to-b rounded-lg p-4 mb-4 flex items-center justify-center min-h-64" style={{
-        backgroundColor: skyColor,
+      <div className="p-4 flex items-center justify-center min-h-64 relative" style={{
+        background: getSeasonGradient(),
       }}>
         <svg
           viewBox="0 0 400 300"
-          className="w-full max-w-sm"
+          className="w-full max-w-sm relative z-10"
           xmlns="http://www.w3.org/2000/svg"
         >
           {/* 地面 */}
@@ -100,40 +114,40 @@ export function ForestDisplay({ forestState }: ForestDisplayProps) {
       </div>
 
       {/* 成長情報 */}
-      <div className="space-y-2">
+      <div className="px-6 py-4 space-y-3 border-t border-green-100">
         {/* プログレスバー */}
-        <div className="bg-gray-200 rounded-full h-3 overflow-hidden">
-          <div
-            className="h-full bg-gradient-to-r from-green-400 to-green-600 transition-all duration-500"
-            style={{ width: `${level}%` }}
-          ></div>
+        <div>
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-semibold text-gray-700">森の成長度</span>
+            <span className="text-sm font-bold text-green-600">{level}/100</span>
+          </div>
+          <div className="bg-gray-200 rounded-full h-4 overflow-hidden shadow-inner">
+            <div
+              className="h-full bg-gradient-to-r from-green-400 via-emerald-500 to-green-600 transition-all duration-700 ease-out shadow-lg"
+              style={{ width: `${level}%` }}
+            ></div>
+          </div>
         </div>
 
-        {/* テキスト */}
-        <div className="flex justify-between text-xs text-gray-600">
-          <span>森の成長度</span>
-          <span className="font-bold">{level}/100</span>
-        </div>
-
-        {/* 成長ステータス */}
-        <div className="text-sm text-gray-700 space-y-1 pt-2 border-t border-gray-200">
+        {/* 成長ステータスメッセージ */}
+        <div className="text-sm text-gray-700 bg-green-50 rounded-lg p-4 border-l-4 border-green-500">
           {level === 0 && (
-            <p>🌱 新しい森が始まります。毎日の習慣で育てましょう</p>
+            <p>🌱 <span className="font-semibold">新しい森が始まります。</span>毎日の習慣で育てましょう</p>
           )}
           {level > 0 && level < 20 && (
-            <p>🌱 まだ小さい森。毎日続けることが大切です</p>
+            <p>🌱 <span className="font-semibold">小さい森が芽吹きました。</span>毎日続けることが大切です</p>
           )}
           {level >= 20 && level < 40 && (
-            <p>🌿 森が育ってきました。習慣が根付いています</p>
+            <p>🌿 <span className="font-semibold">森が育ってきました。</span>習慣が根付いています</p>
           )}
           {level >= 40 && level < 60 && (
-            <p>🌳 しっかりした森になってきました。素敵です</p>
+            <p>🌳 <span className="font-semibold">しっかりした森になりました。</span>素敵です！</p>
           )}
           {level >= 60 && level < 80 && (
-            <p>🌲 豊かな森に成長しました。素晴らしい継続です</p>
+            <p>🌲 <span className="font-semibold">豊かな森に成長しました。</span>素晴らしい継続です</p>
           )}
           {level >= 80 && (
-            <p>🌳✨ あなたの森は完成に近づいています。これからも一緒に育てましょう</p>
+            <p>🌳✨ <span className="font-semibold">神聖な森へと昇華しました。</span>これからも一緒に育てましょう</p>
           )}
         </div>
       </div>
@@ -158,7 +172,7 @@ function Tree({
   const crowRadius = size === 'large' ? 30 : 18;
 
   return (
-    <g>
+    <g className="animate-sway" style={{ transformOrigin: `${x}px ${y + trunkHeight}px` }}>
       {/* 幹 */}
       <rect
         x={x - trunkWidth / 2}
@@ -201,7 +215,7 @@ function Flower({ x, y, color }: { x: number; y: number | string; color: string 
  */
 function Butterfly({ x, y }: { x: number; y: number }) {
   return (
-    <g>
+    <g className="animate-float-gentle" style={{ transformOrigin: `${x}px ${y}px` }}>
       {/* 体 */}
       <circle cx={x} cy={y} r="2" fill="#333" />
       {/* 羽 */}
@@ -220,7 +234,11 @@ function Bird({ x, y, direction }: { x: number; y: number; direction: 'left' | '
   const scaleX = direction === 'right' ? 1 : -1;
 
   return (
-    <g transform={`translate(${x}, ${y}) scale(${scaleX}, 1)`}>
+    <g
+      transform={`translate(${x}, ${y}) scale(${scaleX}, 1)`}
+      className="animate-float-gentle"
+      style={{ transformOrigin: `0px 0px` }}
+    >
       {/* 体 */}
       <circle cx="0" cy="0" r="3" fill="#FFD700" />
       {/* 頭 */}
