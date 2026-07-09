@@ -3,13 +3,14 @@ export interface ParsedForestNote {
   text: string;
   mood?: number;
   energy?: number;
-  mental?: string;
-  body?: string;
-  work?: string;
-  relationship?: string;
-  money?: string;
-  habit?: string;
-  dream?: string;
+  // 7-item life log text descriptions
+  mentalText?: string;
+  bodyText?: string;
+  workText?: string;
+  relationshipText?: string;
+  moneyText?: string;
+  habitText?: string;
+  dreamText?: string;
   tasks: {
     pushups: boolean;
     squats: boolean;
@@ -60,15 +61,15 @@ export function parseForestNoteText(rawText: string): ParsedForestNote | null {
       if (trimmed.startsWith('DATE:')) {
         result.date = trimmed.substring(5).trim();
       } else if (trimmed.startsWith('MENTAL:')) {
-        result.mental = trimmed.substring(7).trim();
+        result.mentalText = trimmed.substring(7).trim();
       } else if (trimmed.startsWith('BODY:')) {
-        result.body = trimmed.substring(5).trim();
+        result.bodyText = trimmed.substring(5).trim();
       } else if (trimmed.startsWith('WORK:')) {
-        result.work = trimmed.substring(5).trim();
+        result.workText = trimmed.substring(5).trim();
       } else if (trimmed.startsWith('RELATION:')) {
-        result.relationship = trimmed.substring(9).trim();
+        result.relationshipText = trimmed.substring(9).trim();
       } else if (trimmed.startsWith('MONEY:')) {
-        result.money = trimmed.substring(6).trim();
+        result.moneyText = trimmed.substring(6).trim();
       } else if (trimmed.startsWith('HABIT:')) {
         // 習慣チェック処理
         const habitLines = lines.slice(lines.indexOf(line) + 1);
@@ -93,7 +94,7 @@ export function parseForestNoteText(rawText: string): ParsedForestNote | null {
           }
         }
       } else if (trimmed.startsWith('DREAM:')) {
-        result.dream = trimmed.substring(6).trim();
+        result.dreamText = trimmed.substring(6).trim();
       } else if (trimmed.startsWith('SUMMARY:')) {
         result.text = trimmed.substring(8).trim();
       }

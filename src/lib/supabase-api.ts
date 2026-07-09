@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { DiaryEntry } from './types';
+import { DiaryEntry, ForestNoteJSON, CardJSON } from './types';
 
 interface SupabaseEntry {
   id: string;
@@ -14,6 +14,43 @@ interface SupabaseEntry {
   created_at?: string;
   updated_at?: string;
   habit_checks?: Array<{ [key: string]: boolean }>;
+  // 7-item life log scores
+  mental?: number;
+  body?: number;
+  work?: number;
+  relationship?: number;
+  money?: number;
+  habit?: number;
+  dream?: number;
+  // 7-item life log text
+  mental_text?: string;
+  body_text?: string;
+  work_text?: string;
+  relationship_text?: string;
+  money_text?: string;
+  habit_text?: string;
+  dream_text?: string;
+  // Meta lists
+  keywords?: string[];
+  items?: string[];
+  locations?: string[];
+  activities?: string[];
+  emotions?: string[];
+  // Daily summary
+  today_best?: string;
+  lesson?: string;
+  tomorrow?: string;
+  ai_comment?: string;
+  // Forest Note & Card data
+  forest_note_json?: ForestNoteJSON;
+  image_prompt?: string;
+  image_url?: string;
+  card_id?: string;
+  card_json?: CardJSON;
+  card_image_url?: string;
+  // Generation flags
+  forest_generated?: boolean;
+  card_generated?: boolean;
 }
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
@@ -88,6 +125,43 @@ export const getDiaryEntries = async (
       imageGenerated: entry.image_generated || false,
       createdAt: entry.created_at,
       updatedAt: entry.updated_at,
+      // 7-item life log scores
+      mental: entry.mental,
+      body: entry.body,
+      work: entry.work,
+      relationship: entry.relationship,
+      money: entry.money,
+      habit: entry.habit,
+      dream: entry.dream,
+      // 7-item life log text
+      mentalText: entry.mental_text,
+      bodyText: entry.body_text,
+      workText: entry.work_text,
+      relationshipText: entry.relationship_text,
+      moneyText: entry.money_text,
+      habitText: entry.habit_text,
+      dreamText: entry.dream_text,
+      // Meta lists
+      keywords: entry.keywords || [],
+      items: entry.items || [],
+      locations: entry.locations || [],
+      activities: entry.activities || [],
+      emotions: entry.emotions || [],
+      // Daily summary
+      todayBest: entry.today_best,
+      lesson: entry.lesson,
+      tomorrow: entry.tomorrow,
+      aiComment: entry.ai_comment,
+      // Forest Note & Card data
+      forestNoteJson: entry.forest_note_json,
+      imagePrompt: entry.image_prompt,
+      imageUrl: entry.image_url,
+      cardId: entry.card_id,
+      cardJson: entry.card_json,
+      cardImageUrl: entry.card_image_url,
+      // Generation flags
+      forestGenerated: entry.forest_generated || false,
+      cardGenerated: entry.card_generated || false,
     }));
   } catch (error) {
     if (error instanceof SupabaseError) throw error;
@@ -128,6 +202,43 @@ export const saveDiaryEntry = async (userId: string, entry: DiaryEntry): Promise
       activity: entry.activity,
       work_time: entry.workTime,
       image_generated: entry.imageGenerated,
+      // 7-item life log scores
+      mental: entry.mental,
+      body: entry.body,
+      work: entry.work,
+      relationship: entry.relationship,
+      money: entry.money,
+      habit: entry.habit,
+      dream: entry.dream,
+      // 7-item life log text
+      mental_text: entry.mentalText,
+      body_text: entry.bodyText,
+      work_text: entry.workText,
+      relationship_text: entry.relationshipText,
+      money_text: entry.moneyText,
+      habit_text: entry.habitText,
+      dream_text: entry.dreamText,
+      // Meta lists
+      keywords: entry.keywords || [],
+      items: entry.items || [],
+      locations: entry.locations || [],
+      activities: entry.activities || [],
+      emotions: entry.emotions || [],
+      // Daily summary
+      today_best: entry.todayBest,
+      lesson: entry.lesson,
+      tomorrow: entry.tomorrow,
+      ai_comment: entry.aiComment,
+      // Forest Note & Card data
+      forest_note_json: entry.forestNoteJson,
+      image_prompt: entry.imagePrompt,
+      image_url: entry.imageUrl,
+      card_id: entry.cardId,
+      card_json: entry.cardJson,
+      card_image_url: entry.cardImageUrl,
+      // Generation flags
+      forest_generated: entry.forestGenerated || false,
+      card_generated: entry.cardGenerated || false,
     };
 
     const { data: diaryEntry, error: diaryError } = await supabase
@@ -174,6 +285,43 @@ export const saveDiaryEntry = async (userId: string, entry: DiaryEntry): Promise
       imageGenerated: diaryEntry.image_generated,
       createdAt: diaryEntry.created_at,
       updatedAt: diaryEntry.updated_at,
+      // 7-item life log scores
+      mental: entry.mental,
+      body: entry.body,
+      work: entry.work,
+      relationship: entry.relationship,
+      money: entry.money,
+      habit: entry.habit,
+      dream: entry.dream,
+      // 7-item life log text
+      mentalText: entry.mentalText,
+      bodyText: entry.bodyText,
+      workText: entry.workText,
+      relationshipText: entry.relationshipText,
+      moneyText: entry.moneyText,
+      habitText: entry.habitText,
+      dreamText: entry.dreamText,
+      // Meta lists
+      keywords: entry.keywords || [],
+      items: entry.items || [],
+      locations: entry.locations || [],
+      activities: entry.activities || [],
+      emotions: entry.emotions || [],
+      // Daily summary
+      todayBest: entry.todayBest,
+      lesson: entry.lesson,
+      tomorrow: entry.tomorrow,
+      aiComment: entry.aiComment,
+      // Forest Note & Card data
+      forestNoteJson: entry.forestNoteJson,
+      imagePrompt: entry.imagePrompt,
+      imageUrl: entry.imageUrl,
+      cardId: entry.cardId,
+      cardJson: entry.cardJson,
+      cardImageUrl: entry.cardImageUrl,
+      // Generation flags
+      forestGenerated: entry.forestGenerated || false,
+      cardGenerated: entry.cardGenerated || false,
     };
   } catch (error) {
     if (error instanceof SupabaseError) throw error;

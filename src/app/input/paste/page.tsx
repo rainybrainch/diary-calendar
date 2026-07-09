@@ -74,9 +74,9 @@ function PasteContent() {
       const savedEntry = await saveDiaryEntry(user.id, {
         date: parsed.date,
         text: parsed.text || '',
-        mood: 5, // デフォルト値（ユーザーは後で手入力）
-        energy: 5,
-        activity: parsed.work || '',
+        mood: parsed.mood || 5, // デフォルト値（ユーザーは後で手入力）
+        energy: parsed.energy || 5,
+        activity: parsed.workText || '',
         workTime: 0,
         tasks: {
           pushups: parsed.tasks.pushups,
@@ -87,25 +87,33 @@ function PasteContent() {
           ai_learning: parsed.tasks.ai_learning || false,
         },
         imageGenerated: false,
-        mental: parsed.mental,
-        body: parsed.body,
-        work: parsed.work,
-        relationship: parsed.relationship,
-        money: parsed.money,
-        habit: parsed.habit,
-        dream: parsed.dream,
+        // 7-item life log text descriptions
+        mentalText: parsed.mentalText,
+        bodyText: parsed.bodyText,
+        workText: parsed.workText,
+        relationshipText: parsed.relationshipText,
+        moneyText: parsed.moneyText,
+        habitText: parsed.habitText,
+        dreamText: parsed.dreamText,
       });
 
       // localStorage にもバックアップ保存
       storage.saveEntry({
         date: parsed.date,
         text: parsed.text || '',
-        mood: 5,
-        energy: 5,
-        activity: parsed.work || '',
+        mood: parsed.mood || 5,
+        energy: parsed.energy || 5,
+        activity: parsed.workText || '',
         workTime: 0,
         tasks: parsed.tasks,
         imageGenerated: false,
+        mentalText: parsed.mentalText,
+        bodyText: parsed.bodyText,
+        workText: parsed.workText,
+        relationshipText: parsed.relationshipText,
+        moneyText: parsed.moneyText,
+        habitText: parsed.habitText,
+        dreamText: parsed.dreamText,
       });
 
       // 確認画面へリダイレクト
@@ -190,12 +198,12 @@ DREAM: 将来への思い...
 
                   <div className="grid grid-cols-2 gap-2 pb-3 border-b">
                     {[
-                      { label: 'メンタル', value: preview.mental },
-                      { label: '体力', value: preview.body },
-                      { label: '仕事', value: preview.work },
-                      { label: '関係', value: preview.relationship },
-                      { label: 'お金', value: preview.money },
-                      { label: '夢', value: preview.dream },
+                      { label: 'メンタル', value: preview.mentalText },
+                      { label: '体力', value: preview.bodyText },
+                      { label: '仕事', value: preview.workText },
+                      { label: '関係', value: preview.relationshipText },
+                      { label: 'お金', value: preview.moneyText },
+                      { label: '夢', value: preview.dreamText },
                     ].map((item) => (
                       <div key={item.label} className="text-xs">
                         <div className="text-gray-600">{item.label}</div>
