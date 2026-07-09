@@ -9,7 +9,9 @@ import { useSupabaseDiaryEntries } from '@/hooks/useSupabaseData';
 import { DeckSelector } from '@/components/DeckSelector';
 import { CardGrid } from '@/components/CardGrid';
 import { CardModal } from '@/components/CardModal';
+import { CardDetailModal } from '@/components/CardDetailModal';
 import { generateCard, DiaryCard, getRarityName } from '@/lib/card-generator';
+import { CardJSON } from '@/lib/types';
 
 function CardsContent() {
   const { user } = useAuth();
@@ -18,6 +20,10 @@ function CardsContent() {
     return { year: now.getFullYear(), month: now.getMonth() };
   });
   const [selectedCard, setSelectedCard] = useState<DiaryCard | null>(null);
+  const [selectedDetailCard, setSelectedDetailCard] = useState<{
+    card: CardJSON;
+    date: string;
+  } | null>(null);
   const [filterRarity, setFilterRarity] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'date' | 'rarity'>('date');
   const [searchCardName, setSearchCardName] = useState('');
@@ -226,13 +232,37 @@ function CardsContent() {
         </div>
 
         {/* Card Grid */}
-        <CardGrid cards={cards} onCardClick={setSelectedCard} entries={entries} />
+        <CardGrid
+          cards={cards}
+          onCardClick={(card) => {
+            // cardJsonがあればDetailModal、なければCardModalを使用
+            const entry = entries.find((e) => e.date === card.date);
+            if (entry?.cardJson) {
+              setSelectedDetailCard({
+                card: entry.cardJson,
+                date: entry.date,
+              });
+            } else {
+              setSelectedCard(card);
+            }
+          }}
+          entries={entries}
+        />
 
-        {/* Card Modal */}
-        {selectedCard && (
+        {/* Card Modal (従来型) */}
+        {selectedCard && !selectedDetailCard && (
           <CardModal
             card={selectedCard}
             onClose={() => setSelectedCard(null)}
+          />
+        )}
+
+        {/* Card Detail Modal (新型・カードゲーム風) */}
+        {selectedDetailCard && (
+          <CardDetailModal
+            card={selectedDetailCard.card}
+            entry={entries.find((e) => e.date === selectedDetailCard.date)}
+            onClose={() => setSelectedDetailCard(null)}
           />
         )}
 
