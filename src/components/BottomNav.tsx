@@ -5,11 +5,11 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 
 const NAV_ITEMS = [
-  { href: '/', icon: '🏠', label: 'ホーム' },
-  { href: '/input/paste', icon: '✍️', label: '記録' },
-  { href: '/cards', icon: '🎴', label: 'カード' },
-  { href: '/forest', icon: '🌲', label: '森' },
-  { href: '/profile', icon: '👤', label: 'プロフィール' },
+  { href: '/', icon: '🌲', label: '森' },
+  { href: '/adventure', icon: '⚔️', label: '冒険ログ' },
+  { href: '/cards', icon: '📚', label: '図鑑' },
+  { href: '/cultivate', icon: '🌳', label: '育成' },
+  { href: '/profile', icon: '👤', label: 'ステータス' },
 ];
 
 export function BottomNav() {
