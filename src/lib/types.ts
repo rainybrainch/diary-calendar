@@ -75,14 +75,14 @@ export interface DiaryEntry {
   imageGenerated?: boolean;
   createdAt?: string;
   updatedAt?: string;
-  // 7項目ライフログ（スコア）
-  mental?: number;
-  body?: number;
-  work?: number;
-  relationship?: number;
-  money?: number;
-  habit?: number;
-  dream?: number;
+  // 7項目ライフログ（スコア：0-100）- 仕様書 Chapter1
+  mental?: number; // 0-100
+  body?: number; // 0-100
+  work?: number; // 0-100
+  relationship?: number; // 0-100
+  money?: number; // 0-100
+  habit?: number; // 0-100
+  dream?: number; // 0-100
   // 7項目ライフログ（テキスト本文） - 仕様書 Chapter1
   mentalText?: string;
   bodyText?: string;
