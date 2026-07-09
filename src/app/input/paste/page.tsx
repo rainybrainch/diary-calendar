@@ -7,17 +7,24 @@ import { useRouter } from 'next/navigation';
 import { AuthGuard } from '@/components/AuthGuard';
 import { useAuth } from '@/hooks/useAuth';
 import { parseForestNoteText, ParsedForestNote } from '@/lib/forest-note-parser';
+import { validateForestNoteJson } from '@/lib/forest-note-validator';
 import { saveDiaryEntry } from '@/lib/supabase-api';
 import { storage } from '@/lib/storage';
+import { ForestNoteJSON } from '@/lib/types';
 import Link from 'next/link';
 
 function PasteContent() {
   const { user } = useAuth();
   const router = useRouter();
+  // テキスト入力モード
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [preview, setPreview] = useState<ParsedForestNote | null>(null);
+  // JSON 入力モード
+  const [inputMode, setInputMode] = useState<'text' | 'json'>('text');
+  const [jsonInput, setJsonInput] = useState('');
+  const [jsonPreview, setJsonPreview] = useState<ForestNoteJSON | null>(null);
 
   const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
     const pasted = e.clipboardData.getData('text/plain');
@@ -47,9 +54,33 @@ function PasteContent() {
     }
   };
 
+  const parseAndPreviewJson = (inputJson: string) => {
+    if (!inputJson.trim()) {
+      setJsonPreview(null);
+      setError(null);
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(inputJson);
+      const validated = validateForestNoteJson(parsed);
+      setJsonPreview(validated);
+      setError(null);
+    } catch (err) {
+      setJsonPreview(null);
+      const errorMsg = err instanceof Error ? err.message : 'JSON 解析エラー';
+      setError(errorMsg);
+    }
+  };
+
   const handleSave = async () => {
-    if (!text.trim()) {
+    // 入力モードに応じたバリデーション
+    if (inputMode === 'text' && !text.trim()) {
       setError('Forest Note テキストを入力してください');
+      return;
+    }
+    if (inputMode === 'json' && !jsonInput.trim()) {
+      setError('Forest Note JSON を入力してください');
       return;
     }
 
@@ -62,62 +93,131 @@ function PasteContent() {
     setError(null);
 
     try {
-      // テキスト解析
-      const parsed = parseForestNoteText(text);
-      if (!parsed) {
-        setError('Forest Note の解析に失敗しました');
-        setLoading(false);
-        return;
+      if (inputMode === 'json') {
+        // JSON 入力モード
+        if (!jsonPreview) {
+          setError('JSON が正しくありません。先にプレビューを確認してください。');
+          setLoading(false);
+          return;
+        }
+
+        // diary_entries に保存（JSON モード）
+        await saveDiaryEntry(user.id, {
+          date: jsonPreview.date,
+          text: jsonPreview.summary || '',
+          mood: 5, // デフォルト値
+          energy: 5,
+          activity: '',
+          workTime: 0,
+          tasks: {
+            pushups: false,
+            squats: false,
+            plank: false,
+            run: false,
+            reading: false,
+            ai_learning: false,
+          },
+          imageGenerated: false,
+          // Forest Note JSON を直接保存
+          forestNoteJson: jsonPreview,
+          forestGenerated: true,
+          // 7-item scores を JSON から抽出
+          mental: jsonPreview.scores.mental,
+          body: jsonPreview.scores.body,
+          work: jsonPreview.scores.work,
+          relationship: jsonPreview.scores.relationship,
+          money: jsonPreview.scores.money,
+          habit: jsonPreview.scores.habit,
+          dream: jsonPreview.scores.dream,
+          // 7-item text descriptions を JSON から抽出
+          mentalText: jsonPreview.mental,
+          bodyText: jsonPreview.body,
+          workText: jsonPreview.work,
+          relationshipText: jsonPreview.relationship,
+          moneyText: jsonPreview.money,
+          habitText: jsonPreview.habit,
+          dreamText: jsonPreview.dream,
+        });
+
+        // localStorage にもバックアップ保存
+        storage.saveEntry({
+          date: jsonPreview.date,
+          text: jsonPreview.summary || '',
+          mood: 5,
+          energy: 5,
+          activity: '',
+          workTime: 0,
+          tasks: {
+            pushups: false,
+            squats: false,
+            plank: false,
+            run: false,
+            reading: false,
+            ai_learning: false,
+          },
+          imageGenerated: false,
+        });
+
+        // 確認画面へリダイレクト
+        router.push(`/input/confirm?date=${jsonPreview.date}`);
+      } else {
+        // テキスト入力モード（既存処理）
+        const parsed = parseForestNoteText(text);
+        if (!parsed) {
+          setError('Forest Note の解析に失敗しました');
+          setLoading(false);
+          return;
+        }
+
+        // diary_entries に保存
+        await saveDiaryEntry(user.id, {
+          date: parsed.date,
+          text: parsed.text || '',
+          mood: parsed.mood || 5,
+          energy: parsed.energy || 5,
+          activity: parsed.workText || '',
+          workTime: 0,
+          tasks: {
+            pushups: parsed.tasks.pushups,
+            squats: parsed.tasks.squats,
+            plank: parsed.tasks.plank,
+            run: parsed.tasks.run,
+            reading: parsed.tasks.reading || false,
+            ai_learning: parsed.tasks.ai_learning || false,
+          },
+          imageGenerated: false,
+          // 7-item life log text descriptions
+          mentalText: parsed.mentalText,
+          bodyText: parsed.bodyText,
+          workText: parsed.workText,
+          relationshipText: parsed.relationshipText,
+          moneyText: parsed.moneyText,
+          habitText: parsed.habitText,
+          dreamText: parsed.dreamText,
+        });
+
+        // localStorage にもバックアップ保存
+        storage.saveEntry({
+          date: parsed.date,
+          text: parsed.text || '',
+          mood: parsed.mood || 5,
+          energy: parsed.energy || 5,
+          activity: parsed.workText || '',
+          workTime: 0,
+          tasks: parsed.tasks,
+          imageGenerated: false,
+          mentalText: parsed.mentalText,
+          bodyText: parsed.bodyText,
+          workText: parsed.workText,
+          relationshipText: parsed.relationshipText,
+          moneyText: parsed.moneyText,
+          habitText: parsed.habitText,
+          dreamText: parsed.dreamText,
+        });
+
+        // 確認画面へリダイレクト
+        router.push(`/input/confirm?date=${parsed.date}`);
       }
-
-      // diary_entries に保存
-      const savedEntry = await saveDiaryEntry(user.id, {
-        date: parsed.date,
-        text: parsed.text || '',
-        mood: parsed.mood || 5, // デフォルト値（ユーザーは後で手入力）
-        energy: parsed.energy || 5,
-        activity: parsed.workText || '',
-        workTime: 0,
-        tasks: {
-          pushups: parsed.tasks.pushups,
-          squats: parsed.tasks.squats,
-          plank: parsed.tasks.plank,
-          run: parsed.tasks.run,
-          reading: parsed.tasks.reading || false,
-          ai_learning: parsed.tasks.ai_learning || false,
-        },
-        imageGenerated: false,
-        // 7-item life log text descriptions
-        mentalText: parsed.mentalText,
-        bodyText: parsed.bodyText,
-        workText: parsed.workText,
-        relationshipText: parsed.relationshipText,
-        moneyText: parsed.moneyText,
-        habitText: parsed.habitText,
-        dreamText: parsed.dreamText,
-      });
-
-      // localStorage にもバックアップ保存
-      storage.saveEntry({
-        date: parsed.date,
-        text: parsed.text || '',
-        mood: parsed.mood || 5,
-        energy: parsed.energy || 5,
-        activity: parsed.workText || '',
-        workTime: 0,
-        tasks: parsed.tasks,
-        imageGenerated: false,
-        mentalText: parsed.mentalText,
-        bodyText: parsed.bodyText,
-        workText: parsed.workText,
-        relationshipText: parsed.relationshipText,
-        moneyText: parsed.moneyText,
-        habitText: parsed.habitText,
-        dreamText: parsed.dreamText,
-      });
-
-      // 確認画面へリダイレクト
-      router.push(`/input/confirm?date=${parsed.date}`);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : '保存に失敗しました';
       setError(errorMsg);
@@ -144,16 +244,42 @@ function PasteContent() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           {/* Input Area */}
           <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
-            <label className="block text-sm font-bold mb-2">テキストを貼り付け</label>
+            {/* タブ切り替え */}
+            <div className="flex gap-1 mb-4 border-b border-gray-300">
+              <button
+                onClick={() => setInputMode('text')}
+                className={`px-4 py-2 font-semibold transition border-b-2 ${
+                  inputMode === 'text'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                📝 テキスト入力
+              </button>
+              <button
+                onClick={() => setInputMode('json')}
+                className={`px-4 py-2 font-semibold transition border-b-2 ${
+                  inputMode === 'json'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                📋 JSON 入力
+              </button>
+            </div>
 
-            <textarea
-              value={text}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                setText(e.target.value);
-                parseAndPreview(e.target.value);
-              }}
-              onPaste={handlePaste}
-              placeholder={`=== FOREST_NOTE_START ===
+            {/* テキスト入力モード */}
+            {inputMode === 'text' && (
+              <div>
+                <label className="block text-sm font-bold mb-2">テキストを貼り付け</label>
+                <textarea
+                  value={text}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                    setText(e.target.value);
+                    parseAndPreview(e.target.value);
+                  }}
+                  onPaste={handlePaste}
+                  placeholder={`=== FOREST_NOTE_START ===
 DATE: 2026-07-07
 MENTAL: 気分が良かった...
 BODY: 十分な睡眠...
@@ -169,12 +295,48 @@ Reading: true
 AI: false
 DREAM: 将来への思い...
 === FOREST_NOTE_END ===`}
-              className="w-full h-80 p-4 border-2 border-gray-300 rounded-lg font-mono text-xs sm:text-sm focus:outline-none focus:border-blue-500 resize-none"
-            />
+                  className="w-full h-80 p-4 border-2 border-gray-300 rounded-lg font-mono text-xs sm:text-sm focus:outline-none focus:border-blue-500 resize-none"
+                />
+                <p className="text-xs text-gray-500 mt-2">
+                  💡 Ctrl+V でペースト
+                </p>
+              </div>
+            )}
 
-            <p className="text-xs text-gray-500 mt-2">
-              💡 Ctrl+V でペースト
-            </p>
+            {/* JSON 入力モード */}
+            {inputMode === 'json' && (
+              <div>
+                <label className="block text-sm font-bold mb-2">Forest Note JSON を貼り付け</label>
+                <textarea
+                  value={jsonInput}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                    setJsonInput(e.target.value);
+                    parseAndPreviewJson(e.target.value);
+                  }}
+                  placeholder={`{
+  "version": "1.0",
+  "date": "2026-07-09",
+  "title": "今日のタイトル",
+  "theme": "テーマ1 テーマ2",
+  "summary": "今日のサマリー",
+  "scores": {
+    "mental": 70,
+    "body": 80,
+    "work": 60,
+    "relationship": 60,
+    "money": 40,
+    "habit": 80,
+    "dream": 65
+  },
+  ...
+}`}
+                  className="w-full h-80 p-4 border-2 border-gray-300 rounded-lg font-mono text-xs sm:text-sm focus:outline-none focus:border-blue-500 resize-none"
+                />
+                <p className="text-xs text-gray-500 mt-2">
+                  💡 Forest Note JSON を貼り付け（GPT①から取得）
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Preview Area */}
@@ -186,7 +348,8 @@ DREAM: 将来への思い...
               </div>
             )}
 
-            {preview && (
+            {/* テキストモード プレビュー */}
+            {inputMode === 'text' && preview && (
               <div className="bg-white rounded-lg shadow-lg p-6">
                 <h3 className="text-lg font-bold text-gray-800 mb-4">✅ プレビュー</h3>
 
@@ -228,13 +391,13 @@ DREAM: 将来への思い...
               </div>
             )}
 
-            {!preview && !error && text.trim() && (
+            {inputMode === 'text' && !preview && !error && text.trim() && (
               <div className="bg-gray-50 rounded-lg p-4 text-center text-sm text-gray-600">
                 <p>解析中...</p>
               </div>
             )}
 
-            {!text.trim() && (
+            {inputMode === 'text' && !text.trim() && (
               <div className="bg-blue-50 rounded-lg border-l-4 border-blue-500 p-4">
                 <div className="text-sm text-blue-800">
                   <p className="font-bold mb-2">📋 形式確認</p>
@@ -242,6 +405,61 @@ DREAM: 将来への思い...
                     <li>✅ 開始・終了タグが必須</li>
                     <li>✅ DATE: YYYY-MM-DD 形式</li>
                     <li>✅ HABIT セクション必須</li>
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            {/* JSON モード プレビュー */}
+            {inputMode === 'json' && jsonPreview && (
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <h3 className="text-lg font-bold text-gray-800 mb-4">✅ JSON プレビュー</h3>
+
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between items-center pb-3 border-b">
+                    <span className="text-gray-600">日付</span>
+                    <span className="font-bold text-blue-600">{jsonPreview.date}</span>
+                  </div>
+
+                  <div className="pb-3 border-b">
+                    <span className="text-gray-600 font-semibold">タイトル</span>
+                    <p className="text-gray-800 mt-1">{jsonPreview.title}</p>
+                  </div>
+
+                  <div className="pb-3 border-b">
+                    <span className="text-gray-600 font-semibold">スコア</span>
+                    <div className="grid grid-cols-2 gap-2 mt-2 text-xs">
+                      {Object.entries(jsonPreview.scores).map(([key, value]) => (
+                        <div key={key} className="flex justify-between">
+                          <span className="text-gray-600 capitalize">{key}</span>
+                          <span className="font-bold text-blue-600">{value}/100</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="pb-3">
+                    <span className="text-gray-600 font-semibold">テーマ</span>
+                    <p className="text-gray-800 mt-1">{jsonPreview.theme}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {inputMode === 'json' && !jsonPreview && !error && jsonInput.trim() && (
+              <div className="bg-gray-50 rounded-lg p-4 text-center text-sm text-gray-600">
+                <p>バリデーション中...</p>
+              </div>
+            )}
+
+            {inputMode === 'json' && !jsonInput.trim() && (
+              <div className="bg-amber-50 rounded-lg border-l-4 border-amber-500 p-4">
+                <div className="text-sm text-amber-800">
+                  <p className="font-bold mb-2">📋 JSON 入力ガイド</p>
+                  <ul className="text-xs space-y-1 text-amber-700">
+                    <li>✅ Forest Note v1.0 JSON をペースト</li>
+                    <li>✅ 必須項目: version, date, title, scores等</li>
+                    <li>✅ スコアは0-100の範囲</li>
                   </ul>
                 </div>
               </div>
@@ -256,7 +474,7 @@ DREAM: 将来への思い...
               キャンセル
             </button>
           </Link>
-          {preview && (
+          {inputMode === 'text' && preview && (
             <Link href="/input/ai-questions">
               <button className="px-4 sm:px-6 py-3 sm:py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 font-bold transition text-sm sm:text-base min-h-12 sm:min-h-auto">
                 💭 AI 質問チャット
@@ -265,9 +483,9 @@ DREAM: 将来への思い...
           )}
           <button
             onClick={handleSave}
-            disabled={loading || !preview}
+            disabled={loading || (inputMode === 'text' ? !preview : !jsonPreview)}
             className={`px-6 sm:px-8 py-3 sm:py-3 rounded-lg font-bold transition flex items-center gap-2 text-sm sm:text-base min-h-12 sm:min-h-auto ${
-              loading || !preview
+              loading || (inputMode === 'text' ? !preview : !jsonPreview)
                 ? 'bg-gray-400 text-gray-700 cursor-not-allowed'
                 : 'bg-blue-500 text-white hover:bg-blue-600'
             }`}
