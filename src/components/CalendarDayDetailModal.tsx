@@ -2,6 +2,7 @@
 
 import { DayDetailData, DayStats, calculateDayStats, getMoodColor, getEnergyColor } from '@/lib/calendar-detail';
 import { DiaryCardComponent } from './DiaryCard';
+import { CardDisplay } from './CardDisplay';
 
 interface CalendarDayDetailModalProps {
   dayData: DayDetailData | null;
@@ -176,58 +177,12 @@ export function CalendarDayDetailModal({
             </div>
           )}
 
-          {/* Card JSON 情報表示 */}
+          {/* Card JSON 表示（CardDisplay テンプレート） */}
           {dayData.cardJson && (
             <div className="mb-6">
-              <h3 className="font-bold text-gray-800 mb-3 text-sm">🎴 Card JSON 情報</h3>
-              <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg p-4 border-2 border-pink-300">
-                <div className="grid grid-cols-2 gap-3 mb-3">
-                  <div>
-                    <div className="text-xs text-gray-600">Card ID</div>
-                    <div className="text-sm font-bold text-gray-800">{dayData.cardJson.card_id}</div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-gray-600">Card Name</div>
-                    <div className="text-sm font-bold text-gray-800">{dayData.cardJson.card_name}</div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-gray-600">Type</div>
-                    <div className="text-sm font-bold text-gray-800">{dayData.cardJson.card_type}</div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-gray-600">Rarity</div>
-                    <div className="text-sm font-bold text-gray-800">{dayData.cardJson.rarity}</div>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3 mb-3">
-                  <div>
-                    <div className="text-xs text-gray-600">Attribute</div>
-                    <div className="text-sm font-bold text-gray-800">{dayData.cardJson.attribute}</div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-gray-600">Energy</div>
-                    <div className="text-sm font-bold text-gray-800">{dayData.cardJson.energy}/10</div>
-                  </div>
-                </div>
-                <div className="grid grid-cols-3 gap-2 mb-3">
-                  <div className="bg-white rounded p-2 text-center">
-                    <div className="text-xs text-gray-600">HP</div>
-                    <div className="text-lg font-bold text-red-600">{dayData.cardJson.hp}</div>
-                  </div>
-                  <div className="bg-white rounded p-2 text-center">
-                    <div className="text-xs text-gray-600">ATK</div>
-                    <div className="text-lg font-bold text-orange-600">{dayData.cardJson.atk}</div>
-                  </div>
-                  <div className="bg-white rounded p-2 text-center">
-                    <div className="text-xs text-gray-600">Energy</div>
-                    <div className="text-lg font-bold text-blue-600">{dayData.cardJson.energy}</div>
-                  </div>
-                </div>
-                <div className="text-xs text-gray-700 leading-relaxed">
-                  <div className="font-semibold mb-1">Skill: {dayData.cardJson.skill.name}</div>
-                  <p className="text-gray-600 mb-2">{dayData.cardJson.skill.effect}</p>
-                  <div className="text-gray-600 italic">"{dayData.cardJson.flavor_text}"</div>
-                </div>
+              <h3 className="font-bold text-gray-800 mb-3 text-sm">🎴 完成カード</h3>
+              <div className="flex justify-center">
+                <CardDisplay cardJson={dayData.cardJson} imageUrl={dayData.cardJson.image_url} size="md" />
               </div>
             </div>
           )}

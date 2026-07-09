@@ -226,7 +226,7 @@ function CardsContent() {
         </div>
 
         {/* Card Grid */}
-        <CardGrid cards={cards} onCardClick={setSelectedCard} />
+        <CardGrid cards={cards} onCardClick={setSelectedCard} entries={entries} />
 
         {/* Card Modal */}
         {selectedCard && (
