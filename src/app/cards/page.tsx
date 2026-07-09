@@ -20,6 +20,8 @@ function CardsContent() {
   const [selectedCard, setSelectedCard] = useState<DiaryCard | null>(null);
   const [filterRarity, setFilterRarity] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'date' | 'rarity'>('date');
+  const [searchCardName, setSearchCardName] = useState('');
+  const [filterAttribute, setFilterAttribute] = useState<string | null>(null);
 
   // 現在のカード一覧を取得
   const { entries } = useSupabaseDiaryEntries(selectedMonth.year, selectedMonth.month);
@@ -33,6 +35,7 @@ function CardsContent() {
   const cards = useMemo(() => {
     let filtered = allCards;
 
+    // Rarity フィルタ
     if (filterRarity) {
       const rarityMap: Record<string, number> = {
         common: 1,
@@ -44,12 +47,31 @@ function CardsContent() {
       filtered = filtered.filter((c) => c.rarity === rarityNum);
     }
 
+    // Attribute フィルタ（cardJson がある場合のみ）
+    if (filterAttribute) {
+      filtered = filtered.filter((c) => {
+        const entry = entries.find((e) => e.date === c.date);
+        return entry?.cardJson?.attribute === filterAttribute;
+      });
+    }
+
+    // Card Name 検索（cardJson がある場合のみ）
+    if (searchCardName.trim()) {
+      const searchLower = searchCardName.toLowerCase();
+      filtered = filtered.filter((c) => {
+        const entry = entries.find((e) => e.date === c.date);
+        const cardName = entry?.cardJson?.card_name || '';
+        return cardName.toLowerCase().includes(searchLower);
+      });
+    }
+
+    // ソート
     if (sortBy === 'date') {
       return filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     } else {
       return filtered.sort((a, b) => b.rarity - a.rarity);
     }
-  }, [allCards, filterRarity, sortBy]);
+  }, [allCards, filterRarity, filterAttribute, searchCardName, sortBy, entries]);
 
   // 利用可能な月リスト（過去6ヶ月 + 今月 + 今後3ヶ月）
   const months = useMemo(() => {
@@ -147,24 +169,60 @@ function CardsContent() {
           </div>
         </div>
 
-        {/* Filter & Sort Controls */}
-        <div className="mb-6 flex gap-2 flex-wrap">
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as 'date' | 'rarity')}
-            className="px-3 py-2 bg-white border-2 border-gray-300 rounded-lg text-sm font-semibold focus:outline-none focus:border-blue-500"
-          >
-            <option value="date">📅 新しい順</option>
-            <option value="rarity">⭐ レアリティ順</option>
-          </select>
-          {filterRarity && (
-            <button
-              onClick={() => setFilterRarity(null)}
-              className="px-3 py-2 bg-red-100 text-red-700 rounded-lg text-sm font-semibold hover:bg-red-200 transition"
+        {/* Search & Filter Controls */}
+        <div className="mb-6 space-y-3">
+          {/* Card Name Search */}
+          <div>
+            <input
+              type="text"
+              placeholder="🔍 カード名で検索..."
+              value={searchCardName}
+              onChange={(e) => setSearchCardName(e.target.value)}
+              className="w-full px-4 py-2 bg-white border-2 border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+            />
+          </div>
+
+          {/* Sort & Attribute Filter */}
+          <div className="flex gap-2 flex-wrap">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as 'date' | 'rarity')}
+              className="px-3 py-2 bg-white border-2 border-gray-300 rounded-lg text-sm font-semibold focus:outline-none focus:border-blue-500"
             >
-              ✕ フィルター解除
-            </button>
-          )}
+              <option value="date">📅 新しい順</option>
+              <option value="rarity">⭐ レアリティ順</option>
+            </select>
+
+            {/* Attribute Filter */}
+            <select
+              value={filterAttribute || ''}
+              onChange={(e) => setFilterAttribute(e.target.value || null)}
+              className="px-3 py-2 bg-white border-2 border-gray-300 rounded-lg text-sm font-semibold focus:outline-none focus:border-blue-500"
+            >
+              <option value="">🎨 属性: すべて</option>
+              <option value="Fire">🔥 Fire</option>
+              <option value="Water">💧 Water</option>
+              <option value="Wind">💨 Wind</option>
+              <option value="Earth">🌍 Earth</option>
+              <option value="Light">✨ Light</option>
+              <option value="Dark">🌙 Dark</option>
+              <option value="Neutral">⚪ Neutral</option>
+            </select>
+
+            {/* Clear Filters Button */}
+            {(filterRarity || filterAttribute || searchCardName) && (
+              <button
+                onClick={() => {
+                  setFilterRarity(null);
+                  setFilterAttribute(null);
+                  setSearchCardName('');
+                }}
+                className="px-3 py-2 bg-red-100 text-red-700 rounded-lg text-sm font-semibold hover:bg-red-200 transition"
+              >
+                ✕ フィルター解除
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Card Grid */}

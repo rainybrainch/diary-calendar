@@ -101,9 +101,13 @@ function CalendarContent() {
     const entry = entriesMap.get(dateStr);
     const card = cardsMap.get(dateStr);
 
-    if (card) return '🎴';
-    if (entry) return '📝';
-    return '';
+    const indicators: string[] = [];
+    if (entry?.cardGenerated) indicators.push('🎴');
+    if (entry?.forestGenerated) indicators.push('🌲');
+    if (card && !entry?.cardGenerated) indicators.push('🎴');
+    if (entry && indicators.length === 0) indicators.push('📝');
+
+    return indicators.join('');
   };
 
   const getDayColor = (day: number) => {
@@ -192,7 +196,11 @@ function CalendarContent() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="flex items-center gap-2">
               <span className="text-2xl">🎴</span>
-              <span className="text-sm text-gray-700">カード生成</span>
+              <span className="text-sm text-gray-700">Card JSON</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">🌲</span>
+              <span className="text-sm text-gray-700">Forest Note</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-2xl">📝</span>
@@ -202,11 +210,10 @@ function CalendarContent() {
               <div className="w-6 h-6 bg-green-50 rounded border-2 border-green-400"></div>
               <span className="text-sm text-gray-700">気分: 良好</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-red-50 rounded border-2 border-red-400"></div>
-              <span className="text-sm text-gray-700">気分: 低調</span>
-            </div>
           </div>
+          <p className="text-xs text-gray-600 mt-4">
+            💡 日付をクリックすると Forest Note スコア（7項目）や Card 情報が表示されます
+          </p>
         </div>
 
         {/* ナビゲーション */}

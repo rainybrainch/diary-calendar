@@ -7,6 +7,17 @@ import { DiaryCard } from './card-generator';
 import { GrowthReport } from './ai/types';
 import { AIAdvice } from './ai/types';
 import { ForestState } from './forest-calculator';
+import { ForestNoteJSON, CardJSON } from './types';
+
+export interface ForestNoteScores {
+  mental: number; // 0-100
+  body: number; // 0-100
+  work: number; // 0-100
+  relationship: number; // 0-100
+  money: number; // 0-100
+  habit: number; // 0-100
+  dream: number; // 0-100
+}
 
 export interface DayDetailData {
   date: string; // YYYY-MM-DD
@@ -27,6 +38,9 @@ export interface DayDetailData {
   forestState?: ForestState; // その日の森の状態
   workTime: number; // 作業時間（分）
   consecutiveDays: number; // その日での連続記録日数
+  forestNoteJson?: ForestNoteJSON; // Forest Note v1.0 JSON
+  forestNoteScores?: ForestNoteScores; // 7項目スコア（0-100）
+  cardJson?: CardJSON; // Card JSON v1.0
 }
 
 export interface DayStats {
@@ -95,6 +109,27 @@ export function getDayDetailData(
   // 連続記録日数を取得
   const consecutiveDays = entry.consecutive_days || 0;
 
+  // Forest Note スコアを抽出（0-100）
+  const forestNoteScores = entry.forestNoteJson
+    ? {
+        mental: entry.forestNoteJson.scores.mental || 0,
+        body: entry.forestNoteJson.scores.body || 0,
+        work: entry.forestNoteJson.scores.work || 0,
+        relationship: entry.forestNoteJson.scores.relationship || 0,
+        money: entry.forestNoteJson.scores.money || 0,
+        habit: entry.forestNoteJson.scores.habit || 0,
+        dream: entry.forestNoteJson.scores.dream || 0,
+      }
+    : {
+        mental: entry.mental || 0,
+        body: entry.body || 0,
+        work: entry.work || 0,
+        relationship: entry.relationship || 0,
+        money: entry.money || 0,
+        habit: entry.habit || 0,
+        dream: entry.dream || 0,
+      };
+
   return {
     date,
     card,
@@ -104,9 +139,12 @@ export function getDayDetailData(
     diary: entry.text,
     workTime: entry.work_time || 0,
     consecutiveDays,
-    growthReport: entry.growth_report, // JSON形式で保存されている場合
-    aiAdvice: entry.ai_advice, // JSON形式で保存されている場合
-    forestState: entry.forest_state, // JSON形式で保存されている場合
+    growthReport: entry.growth_report,
+    aiAdvice: entry.ai_advice,
+    forestState: entry.forest_state,
+    forestNoteJson: entry.forestNoteJson,
+    forestNoteScores,
+    cardJson: entry.cardJson,
   };
 }
 

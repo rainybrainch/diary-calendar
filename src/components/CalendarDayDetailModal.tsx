@@ -128,10 +128,114 @@ export function CalendarDayDetailModal({
             </div>
           )}
 
+          {/* Forest Note スコア（7項目：0-100） */}
+          {dayData.forestNoteScores && (
+            dayData.forestNoteScores.mental > 0 ||
+            dayData.forestNoteScores.body > 0 ||
+            dayData.forestNoteScores.work > 0 ||
+            dayData.forestNoteScores.relationship > 0 ||
+            dayData.forestNoteScores.money > 0 ||
+            dayData.forestNoteScores.habit > 0 ||
+            dayData.forestNoteScores.dream > 0
+          ) && (
+            <div className="mb-6">
+              <h3 className="font-bold text-gray-800 mb-3 text-sm">🌲 Forest Note スコア</h3>
+              <div className="space-y-2">
+                {[
+                  { key: 'mental', label: '🧠 メンタル', color: 'bg-purple-500' },
+                  { key: 'body', label: '💪 体力', color: 'bg-red-500' },
+                  { key: 'work', label: '💼 仕事', color: 'bg-blue-500' },
+                  { key: 'relationship', label: '👥 人間関係', color: 'bg-pink-500' },
+                  { key: 'money', label: '💰 お金', color: 'bg-green-500' },
+                  { key: 'habit', label: '⚡ 習慣', color: 'bg-yellow-500' },
+                  { key: 'dream', label: '✨ 夢', color: 'bg-cyan-500' },
+                ].map(({ key, label, color }) => {
+                  const score = dayData.forestNoteScores?.[key as keyof typeof dayData.forestNoteScores] || 0;
+                  return (
+                    <div key={key}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-semibold text-gray-700">{label}</span>
+                        <span className="text-xs font-bold text-gray-600">{score}/100</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                        <div
+                          className={`h-full ${color} rounded-full`}
+                          style={{ width: `${Math.min(score, 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {dayData.forestNoteJson && (
+                <div className="mt-3 text-xs text-gray-600">
+                  <p className="text-center font-semibold text-gray-700 mb-2">テーマ: {dayData.forestNoteJson.theme}</p>
+                  <p className="leading-relaxed">{dayData.forestNoteJson.summary}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Card JSON 情報表示 */}
+          {dayData.cardJson && (
+            <div className="mb-6">
+              <h3 className="font-bold text-gray-800 mb-3 text-sm">🎴 Card JSON 情報</h3>
+              <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg p-4 border-2 border-pink-300">
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <div>
+                    <div className="text-xs text-gray-600">Card ID</div>
+                    <div className="text-sm font-bold text-gray-800">{dayData.cardJson.card_id}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-600">Card Name</div>
+                    <div className="text-sm font-bold text-gray-800">{dayData.cardJson.card_name}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-600">Type</div>
+                    <div className="text-sm font-bold text-gray-800">{dayData.cardJson.card_type}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-600">Rarity</div>
+                    <div className="text-sm font-bold text-gray-800">{dayData.cardJson.rarity}</div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <div>
+                    <div className="text-xs text-gray-600">Attribute</div>
+                    <div className="text-sm font-bold text-gray-800">{dayData.cardJson.attribute}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-600">Energy</div>
+                    <div className="text-sm font-bold text-gray-800">{dayData.cardJson.energy}/10</div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-2 mb-3">
+                  <div className="bg-white rounded p-2 text-center">
+                    <div className="text-xs text-gray-600">HP</div>
+                    <div className="text-lg font-bold text-red-600">{dayData.cardJson.hp}</div>
+                  </div>
+                  <div className="bg-white rounded p-2 text-center">
+                    <div className="text-xs text-gray-600">ATK</div>
+                    <div className="text-lg font-bold text-orange-600">{dayData.cardJson.atk}</div>
+                  </div>
+                  <div className="bg-white rounded p-2 text-center">
+                    <div className="text-xs text-gray-600">Energy</div>
+                    <div className="text-lg font-bold text-blue-600">{dayData.cardJson.energy}</div>
+                  </div>
+                </div>
+                <div className="text-xs text-gray-700 leading-relaxed">
+                  <div className="font-semibold mb-1">Skill: {dayData.cardJson.skill.name}</div>
+                  <p className="text-gray-600 mb-2">{dayData.cardJson.skill.effect}</p>
+                  <div className="text-gray-600 italic">"{dayData.cardJson.flavor_text}"</div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* カード表示 */}
           {dayData.card && (
             <div className="mb-6">
-              <h3 className="font-bold text-gray-800 mb-3 text-sm">🎴 そのカード</h3>
+              <h3 className="font-bold text-gray-800 mb-3 text-sm">🎴 生成カード</h3>
               <div className="flex justify-center">
                 <div className="w-48">
                   <DiaryCardComponent card={dayData.card} />
